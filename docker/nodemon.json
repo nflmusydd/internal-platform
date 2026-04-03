@@ -1,0 +1,7 @@
+{
+  "watch": ["../app", "../routes", "../config", "../database", "../resources"],
+  "ext": "php",
+  "ignore": ["../vendor", "../node_modules", "../storage", "../bootstrap/cache"],
+  "delay": "500",
+  "exec": "docker compose exec -T app php artisan octane:reload"
+}
