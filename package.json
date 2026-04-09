@@ -4,7 +4,14 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "build-docker": "docker compose -p dev_internal_platform -f docker/docker-compose.dev.yaml build",
+        "restart-docker": "docker compose -p dev_internal_platform -f docker/docker-compose.dev.yaml down && docker compose -p dev_internal_platform -f docker/docker-compose.dev.yaml up -d --build",
+        "restart-docker-fast": "docker compose -p dev_internal_platform -f docker/docker-compose.dev.yaml restart",
+        "up-docker": "docker compose -p dev_internal_platform -f docker/docker-compose.dev.yaml up -d",
+        "up-docker-dev": "docker compose -p dev_internal_platform -f docker/docker-compose.dev.yaml up -d && nodemon --config docker/nodemon.json",
+        "down-docker" : "docker compose -p dev_internal_platform down",
+        "exec-docker" : "docker exec -it dev_internal_platform-app-1 bash"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",

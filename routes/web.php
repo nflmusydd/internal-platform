@@ -7,3 +7,6 @@ Route::get('/', function () {
 });
 
 
+Route::get('/sysadmin', function () {
+    return view('layouts.green-layout');
+});
