@@ -16,6 +16,13 @@ return [
     'search'                => 'search',
     'menu'                  => 'menu',
     'login'                 => 'login',
-    'logout'                => 'logout'
+    'logout'                => 'logout',
+    'new'                   => 'new',
+    'notification'          => 'notification',
+    'new_notification'      => 'new notification',
+    'settings'              => 'setting',
+    'profile'               => 'profile',
+    'show'                  => 'show',
+    'all'                   => 'all',
 
 ];

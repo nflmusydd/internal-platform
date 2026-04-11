@@ -16,6 +16,13 @@ return [
     'search'                => 'cari',
     'menu'                  => 'menu',
     'login'                 => 'masuk',
-    'logout'                => 'keluar'
+    'logout'                => 'keluar',
+    'new'                   => 'baru',
+    'notification'          => 'notifikasi',
+    'new_notification'      => 'notifikasi baru',
+    'settings'              => 'pengaturan',
+    'profile'               => 'profil',
+    'show'                  => 'lihat',
+    'all'                   => 'semua',
 
 ];
