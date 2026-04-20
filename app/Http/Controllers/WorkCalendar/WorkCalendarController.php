@@ -1,24 +1,18 @@
 <?php
 
-namespace App\Http\Controllers\Sysadmin;
+namespace App\Http\Controllers\WorkCalendar;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-class MenuController extends Controller
+class WorkCalendarController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        // Cek Menu
-        // Cek Permission
-        
-        return view('layouts.green_layout', [
-            // 'menu' => $this->menuSlug,
-            // breadcumb untuk menu
-        ]);
+        //
     }
 
     /**

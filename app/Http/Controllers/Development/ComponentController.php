@@ -12,7 +12,13 @@ class ComponentController extends Controller
      */
     public function index()
     {
-        //
+        // Cek Menu
+        // Cek Permission
+        
+        return view('development.components.index', [
+            // 'menu' => $this->menuSlug,
+            // breadcumb untuk menu
+        ]);
     }
 
     /**

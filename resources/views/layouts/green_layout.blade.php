@@ -22,9 +22,12 @@
             --sidebar-width: 260px;            /* Lebar sidebar */
         }
 
-        body {
+        html, body {
+            height: 100%;
+            overflow: hidden;                   /*  Matikan scroll bawaan browser */
             background-color: var(--bg-body); 
             margin: 0;  
+            overscroll-behavior-y: none;         /* Mencegah efek pull-to-refresh */
         }
 
         /* ==========================================
@@ -33,9 +36,9 @@
         .app-wrapper {
             display: flex;         
             width: 100%;           
-            min-height: 100vh;     
-            overflow-x: hidden; /* Mencegah scrollbar horizontal saat animasi */
-            position: relative; /*Sebagai jangkar tombol melayang */
+            height: 100%;     
+            overflow: hidden; /* Matikan scroll */
+            position: relative; 
         }
 
         /* Styling Sidebar */
@@ -46,8 +49,9 @@
             transition: margin-left 0.3s ease-in-out;
             flex-shrink: 0; 
             z-index: 1000;
+            height: 100vh;
+            overflow: hidden;
         }
-
         /* Saat sidebar ditutup (digeser ke kiri sejauh lebarnya) */
         .sidebar.collapsed {
             margin-left: calc(-1 * var(--sidebar-width));
@@ -55,6 +59,7 @@
 
         /* Styling Menu Sidebar */
         .sidebar-link {
+            cursor: pointer;
             color: rgba(255, 255, 255, 0.8);
             text-decoration: none;
             padding: 12px 20px;
@@ -72,20 +77,27 @@
             color: white;
         }
 
-        /* Mensejajarkan tulisan menu */
+        /* Mensejajarkan tulisan menu dan toggle sidebar */
         .sidebar .p-4 {
+            padding-bottom: 0 !important;
             padding-top: 10px !important; 
+            padding-right: 0 !important;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
         }
         /*container untuk header Menu */
         .sidebar-header {
             height: 40px; /* Samakan dgn tinggi .btn-sidebar-toggle  */
             display: flex;
             align-items: end;
+            padding-right: 1.5rem;
             /* margin-bottom: 1.5rem; */
         }
         .sidebar-header-wrapper {
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             padding-bottom: 15px;
+            margin-right: 12px;
         }
         /* Container untuk teks menu agar bisa terpotong (...) */
         .menu-label {
@@ -134,10 +146,11 @@
             padding: 0;
             margin: 0 8px 8px 12px;
             border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1); /* Garis pandu vertikal */
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1); 
         }
         .sidebar-submenu .sidebar-link {
-            padding-left: 15px; /* Jarak dari garis pandu */
+            padding-left: 15px; /* kananin submenu dikit */
             font-size: 0.88rem;
             /* margin-bottom: 2px; */
         }
@@ -151,6 +164,59 @@
         }
         .has-sub.sub-open::after {
             transform: rotate(180deg);
+        }
+
+        /* ==========================================
+            CUSTOM SCROLLBAR (SIDEBAR NAV & CONTENT)
+            ========================================== */
+        .sidebar nav, .app-main-content {
+            flex: 1;
+            overflow-y: auto; /* scroll HANYA untuk list menu ini */
+            padding-bottom: 20px; 
+            -ms-overflow-style: none; 
+            scrollbar-gutter: stable; /* mencegah menu bergeser saat scrollbar aktif */
+            scrollbar-color: transparent transparent; /* Sembunyikan default di Firefox */
+            transition: scrollbar-color 0.3s ease;
+            scrollbar-width: thin; 
+            scrollbar-color: var(--primary-green-hover) transparent;
+        }
+        /* Munculkan di Firefox saat nav di-hover */
+        .sidebar nav:hover {
+            scrollbar-color: var(--primary-green-hover) transparent;
+        }
+
+        /* Kode di bawah efek untuk Chrome, Edge, Safari, dan Opera... Firefox hanya pakai kode atasnya (terbatas) */
+        .sidebar nav::-webkit-scrollbar, .app-main-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        /* Mengatur "Track" (Jalur tempat scrollbar bergerak) */
+        .sidebar nav::-webkit-scrollbar-track {
+            /* background: rgba(255, 255, 255, 0.05); 
+            border-radius: 10px; */
+            background: transparent;
+        }
+        .app-main-content::-webkit-scrollbar-track {
+            /* background: rgba(0, 0, 0, 0.05); 
+            border-radius: 10px;  */
+             background: transparent;
+        }
+
+        /* Hilangkan Panah Atas/Bawah */
+        .sidebar nav::-webkit-scrollbar-button, .app-main-content::-webkit-scrollbar-button {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+
+        /* Mengatur "Thumb" (Batang scrollbar yang bisa ditarik) */
+        .sidebar nav::-webkit-scrollbar-thumb, .app-main-content::-webkit-scrollbar-thumb {
+            background-color: var(--primary-green-hover); 
+            border-radius: 20px;
+        }
+        /* Efek saat "Thumb" disorot mouse (Hover) */
+        .sidebar nav::-webkit-scrollbar-thumb:hover, .app-main-content::-webkit-scrollbar-thumb:hover {
+            background-color: var(--primary-green); 
         }
 
         /* ==========================================
@@ -187,6 +253,10 @@
             .app-wrapper.sidebar-open .sidebar-overlay {
                 display: block; opacity: 1;
             }
+            /* Matikan scroll pada area konten utama ketika sidebar terbuka */
+            .app-wrapper.sidebar-open .app-main-content {
+                overflow-y: hidden;
+            }
 
         }
 
@@ -194,10 +264,11 @@
            LAYOUT TOP BAR & MAIN CONTENT
            ========================================== */
 
-        /* Konten Utama (Top Bar + Isi Halaman) */
-        .main-content {
+        /* Container top bar */
+        .layout-main-container {
             flex: 1; 
             min-width: 0;       
+            height: 100%;
             display: flex;
             flex-direction: column;
             transition: all 0.3s ease-in-out;
@@ -220,7 +291,7 @@
            ANIMASI FLOATING TOGGLE BUTTON & SPACER
            ========================================== */
 
-        /* Tombol aslimu yang kini dibuat melayang (Absolute) */
+        /* Tombol dibuat melayang (Absolute) */
         .btn-sidebar-toggle {
             background-color: white; 
             border: none;
@@ -237,7 +308,7 @@
         .btn-sidebar-toggle.floating-toggle {
             position: absolute;
             top: 10px;  
-            left: 24px; 
+            left: 28px; 
             z-index: 1050; 
             width: 55px; 
             height: 40px;
@@ -438,8 +509,17 @@
             -ms-user-select: none;     /* IE 10+ and Edge */
             user-select: none;         /* Standard syntax */
         }
+
+        /* ==========================================
+           ISI KONTEN DI BAWAH TOPBAR
+           ========================================== */
+        .app-main-content {
+            flex: 1;         
+            overflow-y: auto;
+        }
     </style>
-    @yield('content_headscript')
+    {{-- @yield('content_headscript') --}}
+    @stack('styles')
 </head>
 <body>
 
@@ -454,7 +534,7 @@
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
         <aside class="sidebar collapsed" id="appSidebar">
             <div class="p-4">
-                <div class="sidebar-header-wrapper mb-4">
+                <div class="sidebar-header-wrapper mb-2">
                     <div class="sidebar-header">
                         {{-- <i class="bi bi-box-fill fs-3 me-2"></i> --}}
                         <h5 class="mb-0 fw-bold" style="font-family: 'Poppins', sans-serif;">{{ ucfirst(__('general.menu')) }}</h5>
@@ -462,114 +542,58 @@
                 </div>
 
                 <nav>
-                    {{-- if has_submenu = 0, exec <a>, else exec class sidebar-item --}}
+                    @foreach($menus as $menu)
+                        @php
+                            $name = app()->getLocale() == 'id' ? $menu->name_id : $menu->name_en;
+                            $hasSub = $menu->children->isNotEmpty();
+                            $activeParent = $hasSub && $menu->children->contains(fn($c) => request()->routeIs($c->route_name . '*'));
+                            $activeSingle = !$hasSub && request()->routeIs($menu->route_name . '*');
+                            $menuIconView = \App\Helpers\LayoutHelper::convertToViewPath($menu->icon);
+                        @endphp
 
-                    <a href="#" class="sidebar-link active" title="Dashboard">
-                        <div class="sidebar-icon">
-                            {{-- Coba load dari resources/views/layouts/icons/dashboard.blade.php --}}
-                            @includeIf('layouts.menu_icons.dashboard') 
-                            {{-- Fallback jika file tidak ada --}}
-                            @unless(View::exists('layouts.menu_icons.dashboard'))
-                                <i class="bi bi-square-fill"></i>
-                            @endunless
-                        </div>
-                        <span class="menu-label">Dashboard</span>
-                    </a>
-
-                    <div class="sidebar-item">
-                        <a href="javascript:void(0)" class="sidebar-link has-sub" title="Sysadmin">
-                            <div class="sidebar-icon">
-                                @includeIf('layouts.menu_icons.sysadmin')
-                                @unless(View::exists('layouts.menu_icons.sysadmin'))
-                                    <i class="bi bi-square-fill"></i>
-                                @endunless
+                        @if($hasSub)
+                            <div class="sidebar-item">
+                                <a class="sidebar-link has-sub {{ $activeParent ? 'sub-open active' : '' }}" title="{{ $name }}">
+                                    <div class="sidebar-icon">
+                                        @includeIf($menuIconView)
+                                        @unless($menuIconView && View::exists($menuIconView)) <i class="bi bi-square-fill"></i> @endunless
+                                    </div>
+                                    <span class="menu-label">{{ $name }}</span>
+                                </a>
+                                <div class="sidebar-submenu" style="{{ $activeParent ? 'display: block;' : '' }}">
+                                    @foreach($menu->children as $child)
+                                        @php 
+                                            $childName = app()->getLocale() == 'id' ? $child->name_id : $child->name_en; 
+                                            $childIconView =\App\Helpers\LayoutHelper::convertToViewPath($child->icon);;
+                                        @endphp
+                                        <a href="{{ $child->route_name ? route($child->route_name) : '#' }}" 
+                                           class="sidebar-link {{ request()->routeIs($child->route_name . '*') ? 'active' : '' }}" 
+                                           title="{{ $childName }}">
+                                            <div class="sidebar-icon">
+                                                @includeIf($childIconView)
+                                                @unless($childIconView && View::exists($childIconView)) <i class="bi bi-dash-lg"></i> @endunless
+                                            </div>
+                                            <span class="submenu-label">{{ $childName }}</span>
+                                        </a>
+                                    @endforeach
+                                </div>
                             </div>
-                            <span class="menu-label">Sysadmin</span>
-                        </a>
-                        
-                        <div class="sidebar-submenu">
-                            <a href="#" class="sidebar-link" title="Menu">
+                        @else
+                            <a href="{{ $menu->route_name ? route($menu->route_name) : '#' }}" 
+                               class="sidebar-link {{ $activeSingle ? 'active' : '' }}" title="{{ $name }}">
                                 <div class="sidebar-icon">
-                                    @includeIf('layouts.menu_icons.sysadmin_menu')
-                                    @unless(View::exists('layouts.menu_icons.sysadmin_menu'))
-                                        <i class="bi bi-dash-lg"></i>
-                                    @endunless
+                                    @includeIf($menuIconView)
+                                    @unless($menuIconView && View::exists($menuIconView)) <i class="bi bi-square-fill"></i> @endunless
                                 </div>
-                                <span class="submenu-label">Menu</span>
+                                <span class="menu-label">{{ $name }}</span>
                             </a>
-
-                            <a href="#" class="sidebar-link" title="Pengguna">
-                                <div class="sidebar-icon">
-                                    @includeIf('layouts.menu_icons.sysadmin_user')
-                                    @unless(View::exists('layouts.menu_icons.sysadmin_user'))
-                                        <i class="bi bi-dash-lg"></i>
-                                    @endunless
-                                </div>
-                                <span class="submenu-label">Pengguna</span>
-                            </a>
-                            
-                            <a href="#" class="sidebar-link" title="Peran & Hak Akses">
-                                <div class="sidebar-icon">
-                                    @includeIf('layouts.menu_icons.sysadmin_role')
-                                    @unless(View::exists('layouts.menu_icons.sysadmin_role'))
-                                        <i class="bi bi-dash-lg"></i>
-                                    @endunless
-                                </div>
-                                <span class="submenu-label">Peran & Hak Akses</span>
-                            </a>
-
-                            <a href="#" class="sidebar-link" title="Hak Akses Pengguna">
-                                <div class="sidebar-icon">
-                                    @includeIf('layouts.menu_icons.sysadmin_user_role')
-                                    @unless(View::exists('layouts.menu_icons.sysadmin_user_role'))
-                                        <i class="bi bi-dash-lg"></i>
-                                    @endunless
-                                </div>
-                                <span class="submenu-label">Hak Akses Pengguna</span>
-                            </a>
-                        </div>
-                    </div>
-
-                     <div class="sidebar-item">
-                        <a href="javascript:void(0)" class="sidebar-link has-sub" title="Development">
-                            <div class="sidebar-icon">
-                                @includeIf('layouts.menu_icons.development')
-                                @unless(View::exists('layouts.menu_icons.development'))
-                                    <i class="bi bi-square-fill"></i>
-                                @endunless
-                            </div>
-                            <span class="menu-label">Development</span>
-                        </a>
-                        
-                        <div class="sidebar-submenu">
-                            <a href="#" class="sidebar-link" title="Komponen">
-                                <div class="sidebar-icon">
-                                    @includeIf('layouts.menu_icons.development_component')
-                                    @unless(View::exists('layouts.menu_icons.development_component'))
-                                        <i class="bi bi-dash-lg"></i>
-                                    @endunless
-                                </div>
-                                <span class="submenu-label">Komponen</span>
-                            </a>
-                        </div>
-                    </div>
-
-                    <a href="#" class="sidebar-link">
-                        <div class="sidebar-icon">
-                            {{-- Coba load dari resources/views/layouts/icons/dashboard.blade.php --}}
-                            @includeIf('layouts.menu_icons.report') 
-                            {{-- Fallback jika file tidak ada --}}
-                            @unless(View::exists('layouts.menu_icons.report'))
-                                <i class="bi bi-square-fill"></i> 
-                            @endunless
-                        </div>
-                        <span class="menu-label">Laporan</span>
-                    </a>
+                        @endif
+                    @endforeach
                 </nav>
             </div>
         </aside>
 
-        <div class="main-content">
+        <div class="layout-main-container">
             <header class="topbar shadow-sm">
                 
                 <div class="d-flex align-items-center">
@@ -579,7 +603,7 @@
                     <div class="d-flex align-items-center gap-2 gap-md-3">
                         {{-- <img src="{{ asset('images/mnm_logo.png') }}" alt="Logo" style="height: 32px;"> --}}
                         @include('layouts.logo.mnm_logo')
-                        <h3 class="mb-0 fw-bold text-primary-green logo-text d-none d-md-block text-nowrap" style="font-family: Arial, sans-serif; letter-spacing: 0.5px; vertical-align: middle; margin-right:10px">
+                        <h3 class="mb-0 fw-bold text-primary-green logo-text d-none d-md-block text-nowrap" style="font-family: Arial, sans-serif; letter-spacing: 0.5px; vertical-align: middle; margin-right:12px">
                             {{ ucwords(__('general.internal_platform')) }}
                         </h3>
                     </div>
@@ -587,7 +611,7 @@
 
                 <div class="d-flex align-items-center gap-2 gap-md-4">
                     <form id="searchForm" action="#" method="GET" class="search-container shadow-sm d-none d-lg-flex">
-                        <input type="text" name="search" id="searchInput" class="search-input" placeholder="{{ ucfirst(__('general.search')) }} {{ __('general.menu') }}...">
+                        <input type="text" name="search" id="navSearchInput" class="search-input" placeholder="{{ ucfirst(__('general.search')) }} {{ __('general.menu') }}...">
                         <div class="search-divider"></div>
                         <button type="submit" id="searchButton" class="p-0 border-0 bg-transparent search-icon-btn text-primary-green" style="outline: none;">
                             <i id="searchIcon" class="bi bi-search fs-6 fw-bold"></i>
@@ -638,16 +662,13 @@
                 </div>
             </header>
             
-            <section class="content" height="100%">
+            <section class="app-main-content" height="100%">
                 <div class="row" height="100%">
-                <div class="col-12" id="contents" height="100%">
+                <div class="col-12" id="app-main-body" height="100%">
                     <div id='flash-msg-container'>
                     {{-- @include('flash::message') --}}
                     </div>
-                    @yield('content')
-                    <main class="p-4">
-                        <h4 class="text-secondary">Demoooooooo ooooooooo oo oooooooo ooooooooooooooooooooo ooooooo oooooooo oooo oooooo oooooooo ooooooooo</h4>
-                    </main>
+                    @yield('app-main-content')
                 </div>
                 </div>
             </section>
@@ -672,7 +693,7 @@
             // ==========================================
             // LOGIKA DROPDOWN (USER & NOTIFIKASI)
             // ==========================================
-            let _cursorX = 0;
+            let layoutCursorX = 0;
 
             const $userToggle = $('#userProfileToggle');
             const $userMenu   = $('#userDropdownMenu');
@@ -690,7 +711,7 @@
 
             function setupCustomDropdown($toggleEl, $menuEl, $otherMenuEl, yOffset = 15) {
                 $toggleEl.on('mousedown', function(e) { 
-                    _cursorX = e.clientX; 
+                    layoutCursorX = e.clientX; 
                 });
 
                 $toggleEl.on('click', function(e) {
@@ -705,7 +726,7 @@
                     } else {
                         $menuEl.removeClass('closing').addClass('show'); 
                         
-                        let x = _cursorX;
+                        let x = layoutCursorX;
                         const toggleRect = this.getBoundingClientRect(); 
                         let y = toggleRect.bottom + yOffset; 
 
@@ -741,12 +762,12 @@
             // ==========================================
             $('#searchForm').on('click', function(e) {
                 if (!$(e.target).closest('#searchButton').length) 
-                    $('#searchInput').focus();
+                    $('#navSearchInput').focus();
             });
 
             $('#searchForm').on('submit', function(e) {
                 e.preventDefault(); 
-                const keyword = $('#searchInput').val().trim();
+                const keyword = $('#navSearchInput').val().trim();
                 const $icon = $('#searchIcon');
 
                 if (keyword !== '') {
@@ -771,7 +792,7 @@
                         }
                     });
                 } else {
-                    $('#searchInput').focus();
+                    $('#navSearchInput').focus();
                 }
             });
         
@@ -795,12 +816,14 @@
 
                 $submenu.slideToggle(300);               // Animasi buka/tutup
 
-                // // Tutup sub-menu lain yang sedang terbuka  
+                // Tutup sub-menu lain yg terbuka  
                 // $('.sidebar-submenu').not($submenu).slideUp(300);
                 // $('.has-sub').not($(this)).removeClass('sub-open');
             });
         });
     </script>
-    @yield('content_tailscript')
+
+    {{-- @yield('content_tailscript') --}}
+    @stack('scripts')
 </body>
 </html>

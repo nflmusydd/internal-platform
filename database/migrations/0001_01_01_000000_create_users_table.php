@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
+            $table->bigIncrements('id');
             $table->ulid('ulid')->unique();
             $table->string('name');
             $table->string('email')->unique();
@@ -23,10 +23,10 @@ return new class extends Migration
             $table->string('theme')->default('Green');
             
             $table->rememberToken();
-            $table->dateTime('created_at')->nullable();
-            $table->unsignedBigInteger('created_by')->nullable();
-            $table->dateTime('updated_at')->nullable();
-            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->dateTime('created_at');
+            $table->unsignedBigInteger('created_by');
+            $table->dateTime('updated_at');
+            $table->unsignedBigInteger('updated_by');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
