@@ -11,7 +11,7 @@
         "up-docker": "docker compose -p dev_internal_platform -f docker/docker-compose.dev.yaml up -d",
         "up-docker-dev": "docker compose -p dev_internal_platform -f docker/docker-compose.dev.yaml up -d && nodemon --config docker/nodemon.json",
         "down-docker" : "docker compose -p dev_internal_platform down",
-        "exec-docker" : "docker exec -it dev_internal_platform-app-1 bash"
+        "exec-docker" : "docker exec -it dev_internal_platform-app-1 sh"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",

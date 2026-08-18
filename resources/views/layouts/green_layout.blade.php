@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ ucwords(__('general.internal_platform')) }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -14,11 +15,11 @@
         /* Variabel Warna Utama Berdasarkan Palet */
         :root {
             --primary-green: #043523;       /* Paling gelap: Teks utama & Ikon */
-            --primary-green-hover: #478484; /* Medium teal: Untuk efek hover text */
-            --bg-body: #eff3f1;             /* Paling terang: Background utama */
-            --bg-topbar: #b4c7c0;           /* Hijau muda: Background topbar & dropdown */
-            --sidebar-border: #1d362e;      /* Aksen gelap untuk border sidebar toggle */
-            --search-focus: #6e9b9c;        /* Muted cyan untuk border pencarian aktif */
+            --primary-green-hover: #0f513a; /* Medium teal: Untuk efek hover text */
+            --bg-body: #f4f7f6;             /* Paling terang: Background utama */
+            --bg-topbar: #ffffff;           /* Hijau muda: Background topbar & dropdown */
+            --sidebar-border: #1a4233;      /* Aksen gelap untuk border sidebar toggle */
+            --search-focus: #0d9488;        /* Muted cyan untuk border pencarian aktif */
             --sidebar-width: 260px;            /* Lebar sidebar */
         }
 
@@ -517,6 +518,59 @@
             flex: 1;         
             overflow-y: auto;
         }
+
+        /* ==========================================
+           CUSTOM BREADCRUMB & NAV TABS
+           ========================================== */
+        .breadcrumb-item + .breadcrumb-item::before {
+            color: var(--primary-green);
+        }
+        .breadcrumb-item.active {
+            color: var(--primary-green);
+            font-weight: 600;
+        }
+        .breadcrumb-item a {
+            color: var(--primary-green);
+            transition: color 0.2s ease;
+        }
+        .breadcrumb-item a:hover {
+            color: #6c757d !important;
+        }
+        .breadcrumb .dropdown-menu {
+            min-width: 180px;
+        }
+        .breadcrumb .dropdown-item {
+            color: #212529;
+        }
+        .breadcrumb .dropdown-item:hover {
+            background-color: #e9ecef;
+            color: #212529;
+        }
+        .breadcrumb .dropdown-item.active {
+            background-color: var(--primary-green);
+            color: #fff;
+            pointer-events: none;
+        }
+
+        .nav-tabs .nav-link {
+            color: var(--primary-green);
+            border-color: transparent;
+        }
+        .nav-tabs .nav-link:hover {
+            color: var(--primary-green-hover);
+            border-color: var(--primary-green-hover) var(--primary-green-hover) transparent;
+        }
+        .nav-tabs .nav-link.active {
+            color: var(--primary-green);
+            background-color: #fff;
+            border-color: var(--primary-green) var(--primary-green) #fff;
+            font-weight: 600;
+        }
+
+        .table-responsive table td,
+        .table-responsive table th {
+            white-space: nowrap;
+        }
     </style>
     {{-- @yield('content_headscript') --}}
     @stack('styles')
@@ -560,7 +614,7 @@
                                     </div>
                                     <span class="menu-label">{{ $name }}</span>
                                 </a>
-                                <div class="sidebar-submenu" style="{{ $activeParent ? 'display: block;' : '' }}">
+                                <div class="sidebar-submenu" data-slug="{{ $menu->slug }}" style="{{ $activeParent ? 'display: block;' : '' }}">
                                     @foreach($menu->children as $child)
                                         @php 
                                             $childName = app()->getLocale() == 'id' ? $child->name_id : $child->name_en; 
@@ -682,12 +736,58 @@
     <script>
         $(function() {
             // ==========================================
+            // SIDEBAR STATE (localStorage)
+            // ==========================================
+            var LS_KEY_SIDEBAR = 'app_sidebar_open';
+            var LS_KEY_SUBMENUS = 'app_sidebar_submenus';
+            var savedSidebar = localStorage.getItem(LS_KEY_SIDEBAR);
+            var savedSubmenus = JSON.parse(localStorage.getItem(LS_KEY_SUBMENUS) || '[]');
+            var restoringSidebar = false;
+
+            // Restore sidebar state on load (no animation)
+            if (savedSidebar === 'true') {
+                restoringSidebar = true;
+                $('#appSidebar').css('transition', 'none');
+                $('.layout-main-container').css('transition', 'none');
+                $('#topbarSpacer').css('transition', 'none');
+
+                $('#appSidebar').removeClass('collapsed');
+                $('.app-wrapper').addClass('sidebar-open');
+                $('#sidebarToggleBtn').addClass('rotated');
+            }
+
+            // Restore open submenus (no animation)
+            if (savedSubmenus.length) {
+                $.each(savedSubmenus, function(i, slug) {
+                    var $item = $('.sidebar-submenu[data-slug="' + slug + '"]');
+                    if ($item.length) {
+                        $item.show();
+                        $item.prev('.has-sub').addClass('sub-open');
+                    }
+                });
+            }
+
+            // Re-enable transitions after paint
+            if (restoringSidebar) {
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(function() {
+                        $('#appSidebar').css('transition', '');
+                        $('.layout-main-container').css('transition', '');
+                        $('#topbarSpacer').css('transition', '');
+                        restoringSidebar = false;
+                    });
+                });
+            }
+
+            // ==========================================
             // LOGIKA SIDEBAR PUSH & ANIMATION
             // ==========================================
             $('#sidebarToggleBtn').on('click', function() {
                 $('#appSidebar').toggleClass('collapsed');
                 $('.app-wrapper').toggleClass('sidebar-open');
                 $(this).toggleClass('rotated');
+                var isOpen = $('#appSidebar').hasClass('collapsed') ? 'false' : 'true';
+                localStorage.setItem(LS_KEY_SIDEBAR, isOpen);
             });
             
             // ==========================================
@@ -806,6 +906,16 @@
             // ==========================================
             // LOGIKA SUB-MENU SIDEBAR
             // ========================================== 
+            function saveSubmenuState() {
+                var open = [];
+                $('.sidebar-submenu').each(function() {
+                    if ($(this).is(':visible')) {
+                        open.push($(this).data('slug'));
+                    }
+                });
+                localStorage.setItem(LS_KEY_SUBMENUS, JSON.stringify(open));
+            }
+
             $('.has-sub').on('click', function(e) {
                 e.preventDefault();
                 
@@ -816,9 +926,7 @@
 
                 $submenu.slideToggle(300);               // Animasi buka/tutup
 
-                // Tutup sub-menu lain yg terbuka  
-                // $('.sidebar-submenu').not($submenu).slideUp(300);
-                // $('.has-sub').not($(this)).removeClass('sub-open');
+                saveSubmenuState();
             });
         });
     </script>

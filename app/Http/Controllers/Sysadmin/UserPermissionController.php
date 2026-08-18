@@ -12,7 +12,7 @@ class UserPermissionController extends Controller
      */
     public function index()
     {
-        //
+        return view('sysadmin.user-permissions.index');
     }
 
     /**

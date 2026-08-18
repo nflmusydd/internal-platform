@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Development\ComponentController;
 use App\Http\Controllers\Sysadmin\MenuController;
+use App\Http\Controllers\Sysadmin\PermissionController;
 use App\Http\Controllers\Sysadmin\RolePermissionController;
 use App\Http\Controllers\Sysadmin\UserController;
 use App\Http\Controllers\Sysadmin\UserPermissionController;
@@ -20,13 +21,7 @@ Route::prefix('sysadmin')->name('sysadmin.')->group(function(){
 
     // MENU
     Route::prefix('menus')->name('menus.')->group(function(){
-    //     // Dashboard
-    //     Route::post('data','xxx\DeploymentRequestController@data')->name('data');
-    //     Route::get('change-role/{role}', 'xxx\DeploymentRequestController@changeRole')->name('change_role');
-    //     Route::post('chooser-user/{role}', 'xxx\DeploymentRequestController@userChooser')->name('chooser');
-    //     Route::delete('cancelTR/{id}', 'xxx\DeploymentRequestController@cancelTRHeader')->name('cancelTR');
-    //     Route::get('export_excel', 'xxx\DeploymentRequestController@exportExcel')->name('export_excel');
-        
+
         Route::resource('/', MenuController::class);
     });
 
@@ -36,10 +31,23 @@ Route::prefix('sysadmin')->name('sysadmin.')->group(function(){
         Route::resource('/', UserController::class);
     });
 
-    // ROLE PERMISSION
+    // ROLE
     Route::prefix('role-permissions')->name('role_permissions.')->group(function(){
 
+        Route::get('/ajax/roles', [RolePermissionController::class, 'getRoles'])->name('ajax.roles');
+        Route::get('/ajax/roles/{id}/permissions', [RolePermissionController::class, 'getRolePermissions'])->name('ajax.role_permissions');
+        Route::put('/ajax/roles/{id}/sync-permissions', [RolePermissionController::class, 'syncPermissions'])->name('ajax.sync_permissions');
+
         Route::resource('/', RolePermissionController::class);
+    });
+
+    // PERMISSION
+    Route::prefix('permissions')->name('permissions.')->group(function(){
+
+        Route::get('/ajax/all', [PermissionController::class, 'getAll'])->name('ajax.all');
+        Route::post('/ajax', [PermissionController::class, 'store'])->name('ajax.store');
+        Route::put('/ajax/{id}', [PermissionController::class, 'update'])->name('ajax.update');
+        Route::delete('/ajax/{id}', [PermissionController::class, 'destroy'])->name('ajax.destroy');
     });
 
     // USER PERMISSION
@@ -55,7 +63,7 @@ Route::prefix('sysadmin')->name('sysadmin.')->group(function(){
 // ===============
 Route::prefix('development')->name('development.')->group(function(){
     Route::prefix('components')->name('components.')->group(function(){
-        
+
         Route::resource('/', ComponentController::class);
     });
 });

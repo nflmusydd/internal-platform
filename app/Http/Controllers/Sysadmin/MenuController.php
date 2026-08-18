@@ -12,13 +12,7 @@ class MenuController extends Controller
      */
     public function index()
     {
-        // Cek Menu
-        // Cek Permission
-        
-        return view('layouts.green_layout', [
-            // 'menu' => $this->menuSlug,
-            // breadcumb untuk menu
-        ]);
+        return view('sysadmin.menus.index');
     }
 
     /**

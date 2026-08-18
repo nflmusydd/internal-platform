@@ -10,13 +10,15 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Traits\HasAutoUlid;
+use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password', 'is_active', 'current_photo', 'theme'])] 
+#[Fillable(['name', 'email', 'password', 'is_active', 'current_photo', 'theme', 'created_by', 'updated_by'])] 
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, HasUlids;
+    use HasFactory, Notifiable, HasUlids, HasAutoUlid, HasRoles;
 
     /**
      * Get the attributes that should be cast.

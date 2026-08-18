@@ -3,63 +3,166 @@
 namespace App\Http\Controllers\Sysadmin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Role;
+use App\Models\Permission;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class RolePermissionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        return view('sysadmin.role-permissions.index');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:roles,name',
+            'guard_name' => 'required|string|max:255',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $role = Role::create([
+                'name' => $validated['name'],
+                'guard_name' => $validated['guard_name'],
+                'created_by' => auth()->id() ?? 1,
+                'updated_by' => auth()->id() ?? 1,
+            ]);
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => __('general.successfully_created'),
+                'data' => $role,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Role Store Error', ['message' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => __('general.failed_to_save')], 500);
+        }
     }
 
-    /**
-     * Display the specified resource.
-     */
+    public function update(Request $request, string $id)
+    {
+        $role = Role::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:roles,name,' . $id . ',id',
+            'guard_name' => 'required|string|max:255',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $role->update([
+                'name' => $validated['name'],
+                'guard_name' => $validated['guard_name'],
+                'updated_by' => auth()->id() ?? 1,
+            ]);
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => __('general.successfully_updated'),
+                'data' => $role,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Role Update Error', ['message' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => __('general.failed_to_update')], 500);
+        }
+    }
+
     public function show(string $id)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(string $id)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
-        //
+        $role = Role::findOrFail($id);
+
+        if ($role->users()->count() > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => __('sysadmin/role-permissions/index.role_in_use'),
+            ], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            $role->permissions()->detach();
+            $role->delete();
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => __('general.successfully_deleted'),
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Role Delete Error', ['message' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => __('general.failed_to_delete')], 500);
+        }
+    }
+
+    public function syncPermissions(Request $request, string $id)
+    {
+        $role = Role::findOrFail($id);
+
+        $validated = $request->validate([
+            'permissions' => 'required|array',
+            'permissions.*' => 'string|exists:permissions,name',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $role->syncPermissions($validated['permissions']);
+
+            app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => __('sysadmin/role-permissions/index.permissions_synced'),
+                'data' => [
+                    'role' => $role->name,
+                    'permissions' => $role->permissions->pluck('name'),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Role SyncPermissions Error', ['message' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => __('sysadmin/role-permissions/index.failed_to_sync')], 500);
+        }
+    }
+
+    public function getRoles()
+    {
+        $roles = Role::withCount('permissions')->orderBy('name')->get();
+        return response()->json(['data' => $roles]);
+    }
+
+    public function getRolePermissions(string $id)
+    {
+        $role = Role::with('permissions')->findOrFail($id);
+        return response()->json([
+            'data' => [
+                'role' => $role->name,
+                'permissions' => $role->permissions->pluck('name'),
+            ],
+        ]);
     }
 }

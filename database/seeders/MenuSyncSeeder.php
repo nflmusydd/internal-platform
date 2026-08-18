@@ -5,18 +5,19 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
-class MenuSeeder extends Seeder
+class MenuSyncSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        // MASTER DATA MENU
+        // MASTER DATA/SYNC MENU
         // JIKA MENU TIDAK ADA DI $menus, MAKA AKAN DIHAPUS DI DB
         $menus = [
             [
@@ -104,28 +105,56 @@ class MenuSeeder extends Seeder
                 'icon' => null,
                 'parent_slug' => null,
                 'order' => 3,
-                'is_active' => true,
+                'is_active' => false,
                 'permission_name' => 'view_work_calendar',
             ],
+            // [
+            //     'slug' => 'ulid-test',
+            //     'name_en' => 'ulid',
+            //     'name_id' => 'dilu',
+            //     'route_name' => null,
+            //     'icon' => null,
+            //     'parent_slug' => null,
+            //     'order' => 4,
+            //     'is_active' => false,
+            //     'permission_name' => null,
+            // ],
         ];
 
         DB::beginTransaction();
 
         try {
-            $masterSlugs = []; 
+            $masterSlugs = $insertedSlugs = $skippedSlugs = $updatedSlugs = $deletedSlugs = [];
 
+            $existingMenus = DB::table('menus')->get()->keyBy('slug');      //ambil semua dulu biar gak N+1, tapi kalau menu masih kecil gpp di-first dalam loop
             foreach ($menus as $item) {
                 $masterSlugs[] = $item['slug'];
+                $existing = $existingMenus[$item['slug']] ?? null;
 
                 // search parent_id
                 $parentId = null;
                 if (!empty($item['parent_slug'])) {
-                    $parent = DB::table('menus')->where('slug', $item['parent_slug'])->first();
+                    $parent = $existingMenus[$item['parent_slug']] ?? null;
                     $parentId = $parent ? $parent->id : null;
                 }
 
+                $isChanged = !$existing ||
+                             $existing->parent_id != $parentId ||
+                             $existing->name_en !== $item['name_en'] ||
+                             $existing->name_id !== $item['name_id'] ||
+                             $existing->route_name !== $item['route_name'] ||
+                             $existing->icon !== $item['icon'] ||
+                             $existing->order != $item['order'] ||
+                             (bool) $existing->is_active !== (bool) $item['is_active'] ||
+                             $existing->permission_name !== $item['permission_name'];
+                
+                if ($existing && !$isChanged){
+                    $skippedSlugs[] = $item['slug'];
+                    continue;
+                }
+
                 // Validation
-                $data = [
+                $newData = [
                     'slug' => $item['slug'],
                     'parent_id' => $parentId,
                     'name_en' => $item['name_en'],
@@ -136,8 +165,7 @@ class MenuSeeder extends Seeder
                     'is_active' => $item['is_active'],
                     'permission_name' => $item['permission_name'],
                 ];
-
-                $validator = Validator::make($data, [
+                $validator = Validator::make($newData, [
                     'slug' => 'required|string|max:50',
                     'parent_id' => 'nullable|exists:menus,id',
                     'name_en' => 'required|string|max:50',
@@ -147,9 +175,8 @@ class MenuSeeder extends Seeder
                     'order' => [
                         'required',
                         'integer',
-                        Rule::unique('menus')->where(function ($query) use ($parentId) {
-                            return $query->where('parent_id', $parentId);
-                        })
+                        Rule::unique('menus')->where(function ($query) use ($parentId) { return $query->where('parent_id', $parentId); })
+                                             ->when($existing, function ($rule) use ($existing) { return $rule->ignore($existing->id); }), //ignore row sendiri
                     ],
                     'is_active' => 'boolean',
                     'permission_name' => 'nullable|string|max:255',
@@ -160,23 +187,25 @@ class MenuSeeder extends Seeder
                     throw new \Exception("Failed to validate menu: '{$item['slug']}': {$errors}");
                 }
 
-                // INSERT or UPDATE
-                $existingSlug = DB::table('menus')->where('slug', $item['slug'])->first();
-                if ($existingSlug) {
-                   DB::table('menus')
-                        ->where('slug', $item['slug'])
-                        ->update([
-                            'parent_id' => $parentId,
-                            'name_en' => $item['name_en'],
-                            'name_id' => $item['name_id'],
-                            'route_name' => $item['route_name'],
-                            'icon' => $item['icon'],
-                            'order' => $item['order'],
-                            'is_active' => $item['is_active'],
-                            'permission_name' => $item['permission_name'],
-                            'updated_at' => now(),
-                            'updated_by' => 1,
-                        ]);
+                // UPDATE or INSERT
+                if ($existing) {
+                    // if ($isChanged) {
+                        DB::table('menus')
+                            ->where('slug', $item['slug'])
+                            ->update([
+                                'parent_id' => $parentId,
+                                'name_en' => $item['name_en'],
+                                'name_id' => $item['name_id'],
+                                'route_name' => $item['route_name'],
+                                'icon' => $item['icon'],
+                                'order' => $item['order'],
+                                'is_active' => $item['is_active'],
+                                'permission_name' => $item['permission_name'],
+                                'updated_at' => now(),
+                                'updated_by' => 1,
+                            ]);
+                        $updatedSlugs[] = $item['slug'];
+                    // }
                 } else {
                     DB::table('menus')->insert([
                         'ulid' => (string) Str::ulid(),
@@ -194,23 +223,57 @@ class MenuSeeder extends Seeder
                         'created_by' => 1,
                         'updated_by' => 1,
                     ]);
+                    $insertedSlugs[] = $item['slug'];
                 }
             }
 
             // Hapus semua menu di db yang slug-nya TIDAK ADA di $menus / $masterSlugs
-            $deletedCount = DB::table('menus')
+            $toDelete = DB::table('menus')
                             ->whereNotIn('slug', $masterSlugs)
-                            ->delete();
+                            ->pluck('slug');
+            $deletedSlugs = $toDelete->toArray();
 
-            if ($deletedCount > 0) {
-                $this->command->warn("{$deletedCount} Previous menu removed successfully!");
-            }
+            DB::table('menus')->whereNotIn('slug', $masterSlugs)->delete();
+
 
             DB::commit();
-            $this->command->info("Menu synced successfully!");
+            Log::info('MENU SYNC SEEDER' . ': Process committed' , [
+                'inserted' => [
+                    'count' => count($insertedSlugs),
+                    'slugs' => $insertedSlugs,
+                ],
+                'updated' => [
+                    'count' => count($updatedSlugs),
+                    'slugs' => $updatedSlugs,
+                ],
+                'skipped' => [
+                    'count' => count($skippedSlugs),
+                    'slugs' => $skippedSlugs,
+                ],
+                'deleted' => [
+                    'count' => count($deletedSlugs),
+                    'slugs' => $deletedSlugs,
+                ],
+            ]);
+
+            $this->command->info("=========== MENU SYNC RESULT ===========");
+            $this->command->info("Inserted (" . count($insertedSlugs) . "):");
+            $this->command->line(implode(', ', $insertedSlugs));
+            $this->command->info("Updated (" . count($updatedSlugs) . "):");
+            $this->command->line(implode(', ', $updatedSlugs));
+            $this->command->info("Skipped (" . count($skippedSlugs) . "):");
+            $this->command->line(implode(', ', $skippedSlugs));
+            $this->command->info("Deleted (" . count($deletedSlugs) . "):");
+            $this->command->line(implode(', ', $deletedSlugs));
+            $this->command->newLine(); 
 
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('MENU SYNC SEEDER' . ': Process Failed at line ' . __LINE__ , [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             $this->command->error("An error occurred: " . $e->getMessage());
             throw $e;
         }

@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\HasAutoUlid;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Menu extends Model
 {
-    use HasFactory, HasUlids;
+    use HasFactory, HasUlids, HasAutoUlid;
 
     protected $fillable = [
         'ulid', 'slug', 'parent_id', 'name_en', 'name_id', 
