@@ -36,22 +36,25 @@ class PermissionController extends Controller
             DB::commit();
             return response()->json([
                 'success' => true,
-                'message' => __('general.successfully_created'),
+                'message' => ucfirst(__('general.successfully_created')),
                 'data' => $permission,
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Permission Store Error', ['message' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => __('general.failed_to_save')], 500);
+            return response()->json([
+                'success' => false, 
+                'message' => ucfirst(__('general.failed_to_save'))
+            ], 500);
         }
     }
 
     public function update(Request $request, string $id)
     {
-        $permission = Permission::findOrFail($id);
+        $permission = Permission::where('ulid', $id)->firstOrFail();
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:permissions,name,' . $id . ',id',
+            'name' => 'required|string|max:255|unique:permissions,name,' . $id . ',ulid',
             'guard_name' => 'required|string|max:255',
         ]);
 
@@ -68,19 +71,22 @@ class PermissionController extends Controller
             DB::commit();
             return response()->json([
                 'success' => true,
-                'message' => __('general.successfully_updated'),
+                'message' => ucfirst(__('general.successfully_updated')),
                 'data' => $permission,
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Permission Update Error', ['message' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => __('general.failed_to_update')], 500);
+            return response()->json([
+                'success' => false, 
+                'message' => ucfirst(__('general.failed_to_update'))
+            ], 500);
         }
     }
 
     public function destroy(string $id)
     {
-        $permission = Permission::findOrFail($id);
+        $permission = Permission::where('ulid', $id)->firstOrFail();
 
         DB::beginTransaction();
         try {
@@ -92,12 +98,15 @@ class PermissionController extends Controller
             DB::commit();
             return response()->json([
                 'success' => true,
-                'message' => __('general.successfully_deleted'),
+                'message' => ucfirst(__('general.successfully_deleted')),
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Permission Delete Error', ['message' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => __('general.failed_to_delete')], 500);
+            return response()->json([
+                'success' => false,
+                'message' => ucfirst(__('general.failed_to_delete'))
+            ], 500);
         }
     }
 

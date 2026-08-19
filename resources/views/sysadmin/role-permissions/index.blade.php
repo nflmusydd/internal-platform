@@ -1,4 +1,5 @@
 @extends('layouts.green_layout')
+@include('components.admin.datatables')
 
 @section('app-main-content')
 <div class="p-4 p-md-5">
@@ -7,7 +8,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <nav aria-label="breadcrumb">
-                @include('components.admin.breadcrumb', ['group' => 'sysadmin', 'currentPage' => ''])
+                @include('components.admin.breadcrumb', ['group' => 'sysadmin', 'currentPage' => ' '])
             </nav>
             <h4 class="fw-bold text-primary-green mb-1" style="font-family:'Poppins',sans-serif;">
                 {{ ucfirst(__('general.role')) }} & {{ ucfirst(__('general.permissions')) }}
@@ -41,24 +42,18 @@
                     <i class="bi bi-plus-lg me-1"></i>{{ ucfirst(__('general.add')) }} {{ ucfirst(__('general.role')) }}
                 </button>
             </div>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" id="rolesTable">
-                    <thead>
-                        <tr class="text-uppercase small fw-bold" style="background-color:var(--primary-green);color:#fff;">
-                            <th class="ps-3" style="width:40px;">#</th>
-                            <th>{{ ucfirst(__('general.name')) }}</th>
-                            <th>{{ ucfirst(__('general.guard')) }}</th>
-                            <th style="width:120px;">{{ ucfirst(__('general.permissions')) }}</th>
-                            <th class="text-center" style="width:180px;">{{ ucfirst(__('general.actions')) }}</th>
-                        </tr>
-                    </thead>
-                    <tbody id="rolesBody">
-                        <tr><td colspan="5" class="text-center py-4 text-muted">
-                            <div class="spinner-border spinner-border-sm me-2" role="status"></div>{{ __('sysadmin/role-permissions/index.loading_data') }}
-                        </td></tr>
-                    </tbody>
-                </table>
-            </div>
+            <table class="table table-hover align-middle mb-0" id="rolesTable" style="width:100%">
+                <thead>
+                    <tr class="text-uppercase small fw-bold" style="background-color:var(--primary-green);color:#fff;">
+                        <th class="ps-3">#</th>
+                        <th>{{ ucfirst(__('general.name')) }}</th>
+                        <th>{{ ucfirst(__('general.guard')) }}</th>
+                        <th>{{ ucfirst(__('general.permissions')) }}</th>
+                        <th class="text-center">{{ ucfirst(__('general.actions')) }}</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
         </div>
 
         {{-- ===================== TAB: PERMISSIONS ===================== --}}
@@ -69,24 +64,18 @@
                     <i class="bi bi-plus-lg me-1"></i>{{ ucfirst(__('general.add')) }} {{ ucfirst(__('general.permission')) }}
                 </button>
             </div>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" id="permissionsTable">
-                    <thead>
-                        <tr class="text-uppercase small fw-bold" style="background-color:var(--primary-green);color:#fff;">
-                            <th class="ps-3" style="width:40px;">#</th>
-                            <th>{{ ucfirst(__('general.name')) }}</th>
-                            <th>{{ ucfirst(__('general.guard')) }}</th>
-                            <th style="width:120px;">{{ ucfirst(__('general.used_by')) }}</th>
-                            <th class="text-center" style="width:120px;">{{ ucfirst(__('general.actions')) }}</th>
-                        </tr>
-                    </thead>
-                    <tbody id="permissionsBody">
-                        <tr><td colspan="5" class="text-center py-4 text-muted">
-                            <div class="spinner-border spinner-border-sm me-2" role="status"></div>{{ __('sysadmin/role-permissions/index.loading_data') }}
-                        </td></tr>
-                    </tbody>
-                </table>
-            </div>
+            <table class="table table-hover align-middle mb-0" id="permissionsTable" style="width:100%">
+                <thead>
+                    <tr class="text-uppercase small fw-bold" style="background-color:var(--primary-green);color:#fff;">
+                        <th class="ps-3">#</th>
+                        <th>{{ ucfirst(__('general.name')) }}</th>
+                        <th>{{ ucfirst(__('general.guard')) }}</th>
+                        <th>{{ ucfirst(__('general.used_by')) }}</th>
+                        <th class="text-center">{{ ucfirst(__('general.actions')) }}</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -201,9 +190,9 @@ $(function() {
         rolePermissions: '{{ route("sysadmin.role_permissions.ajax.role_permissions", ":id") }}',
         syncPermissions: '{{ route("sysadmin.role_permissions.ajax.sync_permissions", ":id") }}',
         permissions: '{{ route("sysadmin.permissions.ajax.all") }}',
-        storeRole: '{{ route("sysadmin.role_permissions.store") }}',
-        updateRole: '{{ route("sysadmin.role_permissions.update", ":id") }}',
-        deleteRole: '{{ route("sysadmin.role_permissions.destroy", ":id") }}',
+        storeRole: '{{ route("sysadmin.role_permissions.ajax.store") }}',
+        updateRole: '{{ route("sysadmin.role_permissions.ajax.update", ":id") }}',
+        deleteRole: '{{ route("sysadmin.role_permissions.ajax.destroy", ":id") }}',
         storePermission: '{{ route("sysadmin.permissions.ajax.store") }}',
         updatePermission: '{{ route("sysadmin.permissions.ajax.update", ":id") }}',
         deletePermission: '{{ route("sysadmin.permissions.ajax.destroy", ":id") }}',
@@ -226,58 +215,73 @@ $(function() {
         titleDelete: @json(__('sysadmin/role-permissions/index.title_delete')),
     };
 
-    // Tab switch manual — tanpa Bootstrap Tab, tanpa scroll
-    $('button[data-tab]').on('click', function(e) {
-        e.preventDefault();
+    // ==================== DATATABLES INIT ====================
+    var rolesTable = null;
+    var permissionsTable = null;
 
-        var target = $(this).data('bs-target');
-
-        $('button[data-tab]').removeClass('active');
-        $(this).addClass('active');
-
-        $('.tab-pane').removeClass('show active');
-        $(target).addClass('show active');
-
-        var tab = $(this).data('tab');
-        if (tab === 'roles') loadRoles();
-        else if (tab === 'permissions') loadPermissions();
-    });
-
-    // Load default tab
-    loadRoles();
-
-    // ==================== ROLES ====================
-    function loadRoles() {
-        var $body = $('#rolesBody');
-        $body.html('<tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2" role="status"></div>' + lang.loadingData + '</td></tr>');
-        $.get(routes.roles, function(res) {
-            var roles = res.data;
-            $body.empty();
-            if (!roles.length) {
-                $body.html('<tr><td colspan="5" class="text-center py-4 text-muted"><i class="bi bi-inbox fs-3 d-block mb-2"></i>' + lang.noDataRole + '</td></tr>');
-                return;
-            }
-            $.each(roles, function(i, role) {
-                var permCount = role.permissions_count;
-                var permLabel = permCount !== 1 ? lang.permissionCount.split('|')[1] : lang.permissionCount.split('|')[0];
-                permLabel = permLabel.replace(':count', permCount);
-                $body.append(
-                    '<tr>' +
-                    '<td class="ps-3 text-muted">' + (i+1) + '</td>' +
-                    '<td class="fw-semibold">' + escHtml(role.name) + '</td>' +
-                    '<td><span class="badge bg-secondary">' + escHtml(role.guard_name) + '</span></td>' +
-                    '<td><span class="badge bg-info text-dark">' + permLabel + '</span></td>' +
-                    '<td class="text-center">' +
-                        '<button class="btn btn-sm btn-outline-primary me-1" onclick="openAssignPermModal(\'' + role.id + '\', \'' + escHtml(role.name) + '\')" title="' + lang.titleEdit + '"><i class="bi bi-shield-check"></i></button>' +
-                        '<button class="btn btn-sm btn-outline-warning me-1" onclick="openRoleModal(\'' + role.id + '\', \'' + escHtml(role.name) + '\', \'' + escHtml(role.guard_name) + '\')" title="' + lang.titleEdit + '"><i class="bi bi-pencil"></i></button>' +
-                        '<button class="btn btn-sm btn-outline-danger" onclick="deleteRole(\'' + role.id + '\')" title="' + lang.titleDelete + '"><i class="bi bi-trash"></i></button>' +
-                    '</td>' +
-                    '</tr>'
-                );
-            });
+    function initRolesTable() {
+        if (rolesTable) { rolesTable.ajax.reload(null, false); return; }
+        rolesTable = AdminDataTable.init('#rolesTable', {
+            ajax: { url: routes.roles, dataSrc: 'data' },
+            language: {
+                loadingRecords: '<div class="spinner-border spinner-border-sm me-2" role="status"></div>{{ __("sysadmin/role-permissions/index.loading_data") }}'
+            },
+            columns: [
+                { data: null, orderable: false, className: 'ps-3 text-muted', render: function(d,t,r,m) { return m.row + 1; } },
+                { data: 'name', className: 'fw-semibold' },
+                { data: 'guard_name', render: function(d) { return '<span class="badge bg-secondary">' + escHtml(d) + '</span>'; } },
+                { data: 'permissions_count', render: function(d) {
+                    var label = d !== 1 ? lang.permissionCount.split('|')[1] : lang.permissionCount.split('|')[0];
+                    return '<span class="badge bg-info text-dark">' + label.replace(':count', d) + '</span>';
+                }},
+                { data: null, orderable: false, className: 'text-center', render: function(d) {
+                    return '<button class="btn btn-sm btn-outline-primary me-1" onclick="openAssignPermModal(\'' + d.ulid + '\', \'' + escHtml(d.name) + '\')" title="' + lang.titleEdit + '"><i class="bi bi-shield-check"></i></button>' +
+                           '<button class="btn btn-sm btn-outline-warning me-1" onclick="openRoleModal(\'' + d.ulid + '\', \'' + escHtml(d.name) + '\', \'' + escHtml(d.guard_name) + '\')" title="' + lang.titleEdit + '"><i class="bi bi-pencil"></i></button>' +
+                           '<button class="btn btn-sm btn-outline-danger" onclick="deleteRole(\'' + d.ulid + '\')" title="' + lang.titleDelete + '"><i class="bi bi-trash"></i></button>';
+                }}
+            ],
+            order: [[1, 'asc']]
         });
     }
 
+    function initPermissionsTable() {
+        if (permissionsTable) { permissionsTable.ajax.reload(null, false); return; }
+        permissionsTable = AdminDataTable.init('#permissionsTable', {
+            ajax: { url: routes.permissions, dataSrc: 'data' },
+            language: {
+                loadingRecords: '<div class="spinner-border spinner-border-sm me-2" role="status"></div>{{ __("sysadmin/role-permissions/index.loading_data") }}'
+            },
+            columns: [
+                { data: null, orderable: false, className: 'ps-3 text-muted', render: function(d,t,r,m) { return m.row + 1; } },
+                { data: 'name', className: 'fw-semibold' },
+                { data: 'guard_name', render: function(d) { return '<span class="badge bg-secondary">' + escHtml(d) + '</span>'; } },
+                { data: null, orderable: false, render: function() { return '<span class="text-muted">-</span>'; } },
+                { data: null, orderable: false, className: 'text-center', render: function(d) {
+                    return '<button class="btn btn-sm btn-outline-warning me-1" onclick="openPermissionModal(\'' + d.ulid + '\', \'' + escHtml(d.name) + '\', \'' + escHtml(d.guard_name) + '\')" title="' + lang.titleEdit + '"><i class="bi bi-pencil"></i></button>' +
+                           '<button class="btn btn-sm btn-outline-danger" onclick="deletePermission(\'' + d.ulid + '\')" title="' + lang.titleDelete + '"><i class="bi bi-trash"></i></button>';
+                }}
+            ],
+            order: [[1, 'asc']]
+        });
+    }
+
+    // Load default tab
+    initRolesTable();
+
+    // Tab switch manual
+    $('button[data-tab]').on('click', function(e) {
+        e.preventDefault();
+        var target = $(this).data('bs-target');
+        $('button[data-tab]').removeClass('active');
+        $(this).addClass('active');
+        $('.tab-pane').removeClass('show active');
+        $(target).addClass('show active');
+        var tab = $(this).data('tab');
+        if (tab === 'roles') initRolesTable();
+        else if (tab === 'permissions') initPermissionsTable();
+    });
+
+    // ==================== ROLES ====================
     window.openRoleModal = function(id, name, guard) {
         Admin.resetModal('#roleModal');
         $('#roleModalTitle').html('<i class="bi bi-shield-lock me-2"></i>' + (id ? lang.editRole : lang.addRole));
@@ -298,7 +302,7 @@ $(function() {
         Admin.ajax(url, method, $(this).serialize(), function(res) {
             Admin.toast(res.message, 'success');
             bootstrap.Modal.getInstance('#roleModal').hide();
-            loadRoles();
+            if (rolesTable) rolesTable.ajax.reload(null, false);
         }, function(xhr) {
             if (xhr.status === 422 && xhr.responseJSON?.errors) {
                 Admin.showErrors('#roleModal', xhr.responseJSON.errors);
@@ -308,41 +312,11 @@ $(function() {
 
     window.deleteRole = function(id) {
         Admin.confirmDelete(routes.deleteRole.replace(':id', id), function() {
-            Admin.ajax(routes.deleteRole.replace(':id', id), 'DELETE', {}, function(res) {
-                Admin.toast(res.message, 'success');
-                loadRoles();
-            });
+            if (rolesTable) rolesTable.ajax.reload(null, false);
         });
     };
 
     // ==================== PERMISSIONS ====================
-    function loadPermissions() {
-        var $body = $('#permissionsBody');
-        $body.html('<tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2" role="status"></div>' + lang.loadingData + '</td></tr>');
-        $.get(routes.permissions, function(res) {
-            var perms = res.data;
-            $body.empty();
-            if (!perms.length) {
-                $body.html('<tr><td colspan="5" class="text-center py-4 text-muted"><i class="bi bi-inbox fs-3 d-block mb-2"></i>' + lang.noDataPermission + '</td></tr>');
-                return;
-            }
-            $.each(perms, function(i, perm) {
-                $body.append(
-                    '<tr>' +
-                    '<td class="ps-3 text-muted">' + (i+1) + '</td>' +
-                    '<td class="fw-semibold">' + escHtml(perm.name) + '</td>' +
-                    '<td><span class="badge bg-secondary">' + escHtml(perm.guard_name) + '</span></td>' +
-                    '<td class="text-muted">-</td>' +
-                    '<td class="text-center">' +
-                        '<button class="btn btn-sm btn-outline-warning me-1" onclick="openPermissionModal(\'' + perm.id + '\', \'' + escHtml(perm.name) + '\', \'' + escHtml(perm.guard_name) + '\')" title="' + lang.titleEdit + '"><i class="bi bi-pencil"></i></button>' +
-                        '<button class="btn btn-sm btn-outline-danger" onclick="deletePermission(\'' + perm.id + '\')" title="' + lang.titleDelete + '"><i class="bi bi-trash"></i></button>' +
-                    '</td>' +
-                    '</tr>'
-                );
-            });
-        });
-    }
-
     window.openPermissionModal = function(id, name, guard) {
         Admin.resetModal('#permissionModal');
         $('#permissionModalTitle').html('<i class="bi bi-key me-2"></i>' + (id ? lang.editPermission : lang.addPermission));
@@ -363,8 +337,8 @@ $(function() {
         Admin.ajax(url, method, $(this).serialize(), function(res) {
             Admin.toast(res.message, 'success');
             bootstrap.Modal.getInstance('#permissionModal').hide();
-            loadPermissions();
-            loadRoles();
+            if (permissionsTable) permissionsTable.ajax.reload(null, false);
+            if (rolesTable) rolesTable.ajax.reload(null, false);
         }, function(xhr) {
             if (xhr.status === 422 && xhr.responseJSON?.errors) {
                 Admin.showErrors('#permissionModal', xhr.responseJSON.errors);
@@ -374,11 +348,8 @@ $(function() {
 
     window.deletePermission = function(id) {
         Admin.confirmDelete(routes.deletePermission.replace(':id', id), function() {
-            Admin.ajax(routes.deletePermission.replace(':id', id), 'DELETE', {}, function(res) {
-                Admin.toast(res.message, 'success');
-                loadPermissions();
-                loadRoles();
-            });
+            if (permissionsTable) permissionsTable.ajax.reload(null, false);
+            if (rolesTable) rolesTable.ajax.reload(null, false);
         });
     };
 
@@ -401,8 +372,8 @@ $(function() {
                 var checked = assignedPerms.indexOf(perm.name) !== -1 ? 'checked' : '';
                 html += '<div class="col-md-6 col-lg-4 mb-2">' +
                     '<div class="form-check">' +
-                    '<input class="form-check-input assign-perm-check" type="checkbox" value="' + escHtml(perm.name) + '" id="perm_' + perm.id + '" ' + checked + '>' +
-                    '<label class="form-check-label small" for="perm_' + perm.id + '">' + escHtml(perm.name) + '</label>' +
+                    '<input class="form-check-input assign-perm-check" type="checkbox" value="' + escHtml(perm.name) + '" id="perm_' + perm.ulid + '" ' + checked + '>' +
+                    '<label class="form-check-label small" for="perm_' + perm.ulid + '">' + escHtml(perm.name) + '</label>' +
                     '</div></div>';
             });
 
@@ -420,7 +391,7 @@ $(function() {
         Admin.ajax(routes.syncPermissions.replace(':id', roleId), 'PUT', { permissions: perms }, function(res) {
             Admin.toast(res.message, 'success');
             bootstrap.Modal.getInstance('#assignPermModal').hide();
-            loadRoles();
+            if (rolesTable) rolesTable.ajax.reload(null, false);
         });
     });
 

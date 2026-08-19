@@ -40,22 +40,25 @@ class RolePermissionController extends Controller
             DB::commit();
             return response()->json([
                 'success' => true,
-                'message' => __('general.successfully_created'),
+                'message' => ucfirst(__('general.successfully_created')),
                 'data' => $role,
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Role Store Error', ['message' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => __('general.failed_to_save')], 500);
+            return response()->json([
+                'success' => false, 
+                'message' => ucfirst(__('general.failed_to_save'))
+            ], 500);
         }
     }
 
     public function update(Request $request, string $id)
     {
-        $role = Role::findOrFail($id);
+        $role = Role::where('ulid', $id)->firstOrFail();
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:roles,name,' . $id . ',id',
+            'name' => 'required|string|max:255|unique:roles,name,' . $id . ',ulid',
             'guard_name' => 'required|string|max:255',
         ]);
 
@@ -70,13 +73,16 @@ class RolePermissionController extends Controller
             DB::commit();
             return response()->json([
                 'success' => true,
-                'message' => __('general.successfully_updated'),
+                'message' => ucfirst(__('general.successfully_updated')),
                 'data' => $role,
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Role Update Error', ['message' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => __('general.failed_to_update')], 500);
+            return response()->json([
+                'success' => false, 
+                'message' => ucfirst(__('general.failed_to_update'))
+            ], 500);
         }
     }
 
@@ -92,12 +98,12 @@ class RolePermissionController extends Controller
 
     public function destroy(string $id)
     {
-        $role = Role::findOrFail($id);
+        $role = Role::where('ulid', $id)->firstOrFail();
 
         if ($role->users()->count() > 0) {
             return response()->json([
                 'success' => false,
-                'message' => __('sysadmin/role-permissions/index.role_in_use'),
+                'message' => ucfirst(__('sysadmin/role-permissions/index.role_in_use')),
             ], 422);
         }
 
@@ -109,18 +115,21 @@ class RolePermissionController extends Controller
             DB::commit();
             return response()->json([
                 'success' => true,
-                'message' => __('general.successfully_deleted'),
+                'message' => ucfirst(__('general.successfully_deleted')),
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Role Delete Error', ['message' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => __('general.failed_to_delete')], 500);
+            return response()->json([
+                'success' => false, 
+                'message' => ucfirst(__('general.failed_to_delete'))
+            ], 500);
         }
     }
 
     public function syncPermissions(Request $request, string $id)
     {
-        $role = Role::findOrFail($id);
+        $role = Role::where('ulid', $id)->firstOrFail();
 
         $validated = $request->validate([
             'permissions' => 'required|array',
@@ -136,7 +145,7 @@ class RolePermissionController extends Controller
             DB::commit();
             return response()->json([
                 'success' => true,
-                'message' => __('sysadmin/role-permissions/index.permissions_synced'),
+                'message' => ucfirst(__('sysadmin/role-permissions/index.permissions_synced')),
                 'data' => [
                     'role' => $role->name,
                     'permissions' => $role->permissions->pluck('name'),
@@ -145,7 +154,10 @@ class RolePermissionController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Role SyncPermissions Error', ['message' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => __('sysadmin/role-permissions/index.failed_to_sync')], 500);
+            return response()->json([
+                'success' => false, 
+                'message' => ucfirst(__('sysadmin/role-permissions/index.failed_to_sync'))
+            ], 500);
         }
     }
 
@@ -157,7 +169,7 @@ class RolePermissionController extends Controller
 
     public function getRolePermissions(string $id)
     {
-        $role = Role::with('permissions')->findOrFail($id);
+        $role = Role::with('permissions')->where('ulid', $id)->firstOrFail();
         return response()->json([
             'data' => [
                 'role' => $role->name,

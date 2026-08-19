@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
-class RolePermissionSyncSeeder extends Seeder
+class RolePermissionSeeder extends Seeder
 {
     /**
      * Run the database seeds.

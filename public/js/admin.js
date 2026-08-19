@@ -12,7 +12,7 @@ var Admin = (function () {
                 if (onSuccess) onSuccess(response);
             },
             error: function (xhr) {
-                var msg = 'Terjadi kesalahan.';
+                var msg = 'An error occured';
                 if (xhr.responseJSON) {
                     msg = xhr.responseJSON.message || msg;
                     if (xhr.responseJSON.errors) {

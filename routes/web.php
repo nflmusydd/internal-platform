@@ -37,7 +37,10 @@ Route::prefix('sysadmin')->name('sysadmin.')->group(function(){
         Route::get('/ajax/roles', [RolePermissionController::class, 'getRoles'])->name('ajax.roles');
         Route::get('/ajax/roles/{id}/permissions', [RolePermissionController::class, 'getRolePermissions'])->name('ajax.role_permissions');
         Route::put('/ajax/roles/{id}/sync-permissions', [RolePermissionController::class, 'syncPermissions'])->name('ajax.sync_permissions');
-
+        Route::post('/ajax', [RolePermissionController::class, 'store'])->name('ajax.store');
+        Route::put('/ajax/roles/{id}', [RolePermissionController::class, 'update'])->name('ajax.update');
+        Route::delete('/ajax/roles/{id}', [RolePermissionController::class, 'destroy'])->name('ajax.destroy');
+    
         Route::resource('/', RolePermissionController::class);
     });
 

@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Traits\HasAutoUlid;
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 
+#[Hidden(['id'])]
 class Menu extends Model
 {
-    use HasFactory, HasUlids, HasAutoUlid;
+    use HasFactory, HasAutoUlid;
 
     protected $fillable = [
         'ulid', 'slug', 'parent_id', 'name_en', 'name_id', 
@@ -31,10 +32,5 @@ class Menu extends Model
     public function parent()
     {
         return $this->belongsTo(Menu::class, 'parent_id');
-    }
-
-    public function uniqueIds(): array 
-    {
-        return ['ulid']; 
     }
 }
