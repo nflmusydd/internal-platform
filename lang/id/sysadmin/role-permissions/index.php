@@ -23,5 +23,19 @@ return [
     'role_in_use'                   => 'Peran tidak dapat dihapus karena masih digunakan oleh user.',
     'permissions_synced'            => 'Hak akses untuk peran berhasil diperbarui.',
     'failed_to_sync'                => 'Gagal menyinkronkan hak akses.',
+    'warning_role_in_use'           => 'Peran <strong>:name</strong> sedang digunakan oleh :count user. Menghapusnya akan menghapus peran dari user tersebut.',
+    'warning_permission_in_use'     => 'Hak akses <strong>:name</strong> sedang digunakan oleh :count peran. Menghapusnya akan menghapus hak akses dari peran tersebut.',
+
+    'filter_placeholder_name'       => 'Cari nama...',
+    'filter_label_name'             => 'Nama',
+    'filter_label_guard'            => 'Guard',
+    'filter_label_has_permissions'  => 'Hak Akses',
+    'filter_label_in_use'           => 'Digunakan',
+    'filter_guard_all'              => 'Semua guard',
+    'filter_has_permissions'        => 'Punya Hak Akses',
+    'filter_in_use'                 => 'Digunakan',
+    'filter_exists'                 => 'Ada',
+    'filter_yes'                    => 'Ya',
+    'filter_no'                     => 'Tidak',
 
 ];

@@ -70,11 +70,26 @@ var Admin = (function () {
         });
     }
 
-    function confirmDelete(url, onSuccess) {
+    function confirmDelete(url, onSuccess, message) {
         var $modal = $('#confirmDeleteModal');
+        if (message) {
+            $modal.find('.modal-body p').html(message);
+        } else {
+            $modal.find('.modal-body p').html($('#confirmDeleteDefaultMessage').val());
+        }
         $modal.data('delete-url', url);
         $modal.data('on-success', onSuccess);
         new bootstrap.Modal($modal[0]).show();
+    }
+
+    function confirmWarning(message, url, onSuccess) {
+        $('#confirmWarningMessage').html(message);
+        var $modal = $('#confirmWarningModal');
+        new bootstrap.Modal($modal[0]).show();
+        $('#btnConfirmWarning').off('click').on('click', function () {
+            bootstrap.Modal.getInstance($modal[0]).hide();
+            confirmDelete(url, onSuccess);
+        });
     }
 
     return {
@@ -82,6 +97,7 @@ var Admin = (function () {
         toast: showToast,
         resetModal: resetModal,
         showErrors: showValidationErrors,
-        confirmDelete: confirmDelete
+        confirmDelete: confirmDelete,
+        confirmWarning: confirmWarning
     };
 })();

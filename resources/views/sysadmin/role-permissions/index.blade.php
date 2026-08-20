@@ -36,16 +36,63 @@
 
         {{-- ===================== TAB: ROLES ===================== --}}
         <div class="tab-pane fade show active" id="panel-roles" role="tabpanel">
-            <div class="d-flex justify-content-end mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-secondary search-filter-toggle" type="button"
+                            data-target="filterBar-roles" title="{{ ucfirst(__('general.search')) }}">
+                        <i class="bi bi-funnel me-1"></i>{{ ucfirst(__('general.search')) }}
+                    </button>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle filter-toolbar-btn" type="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-download me-1"></i>{{ ucfirst(__('general.export')) }}
+                        </button>
+                        <ul class="dropdown-menu shadow-sm">
+                            <li>
+                                <a class="dropdown-item" href="javascript:void(0)" onclick="exportData('roles', 'xlsx')">
+                                    <i class="bi bi-file-earmark-excel text-success me-2"></i>XLSX
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
                 <button class="btn btn-sm fw-semibold" style="background-color:var(--primary-green);color:#fff;"
                         onclick="openRoleModal()">
                     <i class="bi bi-plus-lg me-1"></i>{{ ucfirst(__('general.add')) }} {{ ucfirst(__('general.role')) }}
                 </button>
             </div>
+            @include('components.admin.search-filter', [
+                'id' => 'roles',
+                'filters' => [
+                    [
+                        'key' => 'name', 
+                        'type' => 'text', 
+                        'label' => __('sysadmin/role-permissions/index.filter_label_name'),
+                        'placeholder' => __('sysadmin/role-permissions/index.filter_placeholder_name')
+                    ],
+                    [
+                        'key' => 'guard', 
+                        'type' => 'select', 
+                        'label' => __('sysadmin/role-permissions/index.filter_label_guard'),
+                        'placeholder' => __('sysadmin/role-permissions/index.filter_guard_all')
+                        // options diisi oleh initRolesTable() dan populateSelect()  --> otomatis baca data unique 
+                    ],
+                    [
+                        'key' => 'hasPermissions', 
+                        'type' => 'select', 
+                        'label' => __('sysadmin/role-permissions/index.filter_label_has_permissions'),
+                        'placeholder' => ucfirst(__('sysadmin/role-permissions/index.filter_exists')) . ' ' . __('general.and') . ' ' . ucfirst(__('sysadmin/role-permissions/index.filter_no')), 
+                        'options' => [
+                            '1' => __('sysadmin/role-permissions/index.filter_exists'),
+                            '0' => __('sysadmin/role-permissions/index.filter_no'),
+                        ]
+                    ],
+                ],
+            ])
             <table class="table table-hover align-middle mb-0" id="rolesTable" style="width:100%">
                 <thead>
-                    <tr class="text-uppercase small fw-bold" style="background-color:var(--primary-green);color:#fff;">
-                        <th class="ps-3">#</th>
+                    <tr class="text-uppercase small fw-bold">
+                        <th class="ps-3">No.</th>
                         <th>{{ ucfirst(__('general.name')) }}</th>
                         <th>{{ ucfirst(__('general.guard')) }}</th>
                         <th>{{ ucfirst(__('general.permissions')) }}</th>
@@ -58,16 +105,62 @@
 
         {{-- ===================== TAB: PERMISSIONS ===================== --}}
         <div class="tab-pane fade" id="panel-permissions" role="tabpanel">
-            <div class="d-flex justify-content-end mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-secondary search-filter-toggle" type="button"
+                            data-target="filterBar-permissions" title="{{ ucfirst(__('general.search')) }}">
+                        <i class="bi bi-funnel me-1"></i>{{ ucfirst(__('general.search')) }}
+                    </button>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle filter-toolbar-btn" type="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-download me-1"></i>{{ ucfirst(__('general.export')) }}
+                        </button>
+                        <ul class="dropdown-menu shadow-sm">
+                            <li>
+                                <a class="dropdown-item" href="javascript:void(0)" onclick="exportData('permissions', 'xlsx')">
+                                    <i class="bi bi-file-earmark-excel text-success me-2"></i>XLSX
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
                 <button class="btn btn-sm fw-semibold" style="background-color:var(--primary-green);color:#fff;"
                         onclick="openPermissionModal()">
-                    <i class="bi bi-plus-lg me-1"></i>{{ ucfirst(__('general.add')) }} {{ ucfirst(__('general.permission')) }}
+                    <i class="bi bi-plus-lg me-1"></i>{{ ucfirst(__('general.add')) }} {{ ucwords(__('general.permission')) }}
                 </button>
             </div>
+            @include('components.admin.search-filter', [
+                'id' => 'permissions',
+                'filters' => [
+                    [
+                        'key' => 'name', 
+                        'type' => 'text', 
+                        'label' => __('sysadmin/role-permissions/index.filter_label_name'),
+                        'placeholder' => __('sysadmin/role-permissions/index.filter_placeholder_name')
+                    ],
+                    [
+                        'key' => 'guard', 
+                        'type' => 'select', 
+                        'label' => __('sysadmin/role-permissions/index.filter_label_guard'),
+                        'placeholder' => __('sysadmin/role-permissions/index.filter_guard_all')
+                    ],
+                    [
+                        'key' => 'inUse', 
+                        'type' => 'select', 
+                        'label' => __('sysadmin/role-permissions/index.filter_label_in_use'),
+                        'placeholder' => ucfirst(__('general.yes')) . ' ' . __('general.and') . ' ' . ucfirst(__('general.no')), 
+                        'options' => [
+                            '1' => __('sysadmin/role-permissions/index.filter_yes'),
+                            '0' => __('sysadmin/role-permissions/index.filter_no'),
+                        ]
+                    ],
+                ],
+            ])
             <table class="table table-hover align-middle mb-0" id="permissionsTable" style="width:100%">
                 <thead>
-                    <tr class="text-uppercase small fw-bold" style="background-color:var(--primary-green);color:#fff;">
-                        <th class="ps-3">#</th>
+                    <tr class="text-uppercase small fw-bold">
+                        <th class="ps-3">No.</th>
                         <th>{{ ucfirst(__('general.name')) }}</th>
                         <th>{{ ucfirst(__('general.guard')) }}</th>
                         <th>{{ ucfirst(__('general.used_by')) }}</th>
@@ -182,14 +275,16 @@
 @include('components.admin.confirm-delete')
 
 @push('scripts')
-<script src="{{ asset('js/admin.js') }}"></script>
+<script src="{{ asset('js/admin.js') }}?v={{ filemtime(public_path('js/admin.js')) }}"></script>
 <script>
 $(function() {
     var routes = {
         roles: '{{ route("sysadmin.role_permissions.ajax.roles") }}',
+        exportRoles: '{{ route("sysadmin.role_permissions.ajax.export_roles") }}',
         rolePermissions: '{{ route("sysadmin.role_permissions.ajax.role_permissions", ":id") }}',
         syncPermissions: '{{ route("sysadmin.role_permissions.ajax.sync_permissions", ":id") }}',
         permissions: '{{ route("sysadmin.permissions.ajax.all") }}',
+        exportPermissions: '{{ route("sysadmin.permissions.ajax.export_permissions") }}',
         storeRole: '{{ route("sysadmin.role_permissions.ajax.store") }}',
         updateRole: '{{ route("sysadmin.role_permissions.ajax.update", ":id") }}',
         deleteRole: '{{ route("sysadmin.role_permissions.ajax.destroy", ":id") }}',
@@ -208,11 +303,15 @@ $(function() {
         editPermission: @json(__('sysadmin/role-permissions/index.edit_permission')),
         noDataRole: @json(__('sysadmin/role-permissions/index.no_data_role')),
         noDataPermission: @json(__('sysadmin/role-permissions/index.no_data_permission')),
+        roles: @json(__('general.roles')),
+        confirmDeleteWith: @json(__('general.confirm_delete_with')),
         noPermissionsAvailable: @json(__('sysadmin/role-permissions/index.no_permissions_available')),
         permissionCount: @json(__('sysadmin/role-permissions/index.permission_count')),
         assignPermissionsTo: @json(__('sysadmin/role-permissions/index.assign_permissions_to')),
         titleEdit: @json(__('sysadmin/role-permissions/index.title_edit')),
         titleDelete: @json(__('sysadmin/role-permissions/index.title_delete')),
+        warningRoleInUse: @json(__('sysadmin/role-permissions/index.warning_role_in_use')),
+        warningPermissionInUse: @json(__('sysadmin/role-permissions/index.warning_permission_in_use')),
     };
 
     // ==================== DATATABLES INIT ====================
@@ -222,7 +321,14 @@ $(function() {
     function initRolesTable() {
         if (rolesTable) { rolesTable.ajax.reload(null, false); return; }
         rolesTable = AdminDataTable.init('#rolesTable', {
-            ajax: { url: routes.roles, dataSrc: 'data' },
+            ajax: {
+                url: routes.roles,
+                dataSrc: 'data',
+                complete: function () {
+                    var guards = rolesTable.column(2).data().unique().sort().toArray();
+                    AdminSearchFilter.populateSelect('filterBar-roles', 'guard', guards);
+                }
+            },
             language: {
                 loadingRecords: '<div class="spinner-border spinner-border-sm me-2" role="status"></div>{{ __("sysadmin/role-permissions/index.loading_data") }}'
             },
@@ -240,14 +346,31 @@ $(function() {
                            '<button class="btn btn-sm btn-outline-danger" onclick="deleteRole(\'' + d.ulid + '\')" title="' + lang.titleDelete + '"><i class="bi bi-trash"></i></button>';
                 }}
             ],
+            columnDefs: [
+                { width: '20px', targets: 0 }
+            ],
             order: [[1, 'asc']]
+        });
+        rolesTable.settings()[0]._searchFilterId = 'roles';
+        AdminSearchFilter.init('#rolesTable', {
+            id: 'roles',
+            table: rolesTable,
+            columnMap: { name: 1, guard: 2 },
+            customFilters: { hasPermissions: true }
         });
     }
 
     function initPermissionsTable() {
         if (permissionsTable) { permissionsTable.ajax.reload(null, false); return; }
         permissionsTable = AdminDataTable.init('#permissionsTable', {
-            ajax: { url: routes.permissions, dataSrc: 'data' },
+            ajax: {
+                url: routes.permissions,
+                dataSrc: 'data',
+                complete: function () {
+                    var guards = permissionsTable.column(2).data().unique().sort().toArray();
+                    AdminSearchFilter.populateSelect('filterBar-permissions', 'guard', guards);
+                }
+            },
             language: {
                 loadingRecords: '<div class="spinner-border spinner-border-sm me-2" role="status"></div>{{ __("sysadmin/role-permissions/index.loading_data") }}'
             },
@@ -255,18 +378,77 @@ $(function() {
                 { data: null, orderable: false, className: 'ps-3 text-muted', render: function(d,t,r,m) { return m.row + 1; } },
                 { data: 'name', className: 'fw-semibold' },
                 { data: 'guard_name', render: function(d) { return '<span class="badge bg-secondary">' + escHtml(d) + '</span>'; } },
-                { data: null, orderable: false, render: function() { return '<span class="text-muted">-</span>'; } },
+                { data: 'roles_count', render: function(d) {
+                    return d > 0
+                        ? '<span class="badge bg-warning text-dark">' + d + ' ' + escHtml(lang.roles) + '</span>'
+                        : '<span class="text-muted">-</span>';
+                }},
                 { data: null, orderable: false, className: 'text-center', render: function(d) {
                     return '<button class="btn btn-sm btn-outline-warning me-1" onclick="openPermissionModal(\'' + d.ulid + '\', \'' + escHtml(d.name) + '\', \'' + escHtml(d.guard_name) + '\')" title="' + lang.titleEdit + '"><i class="bi bi-pencil"></i></button>' +
                            '<button class="btn btn-sm btn-outline-danger" onclick="deletePermission(\'' + d.ulid + '\')" title="' + lang.titleDelete + '"><i class="bi bi-trash"></i></button>';
                 }}
             ],
+            columnDefs: [
+                { width: '20px', targets: 0 }
+            ],
             order: [[1, 'asc']]
+        });
+        permissionsTable.settings()[0]._searchFilterId = 'permissions';
+        AdminSearchFilter.init('#permissionsTable', {
+            id: 'permissions',
+            table: permissionsTable,
+            columnMap: { name: 1, guard: 2 },
+            customFilters: { inUse: true }
         });
     }
 
     // Load default tab
     initRolesTable();
+
+    // ==================== EXPORT ====================
+    window.exportData = function(tab, format) {
+        var state = window.filterState[tab] || {};
+        var url = tab === 'roles' ? routes.exportRoles : routes.exportPermissions;
+        var params = $.param(state);
+        window.location.href = url + (params ? '?' + params : '');
+    };
+
+    // ==================== SEARCH FILTER ====================
+    AdminSearchFilter.registerCustomSearch('hasPermissions', function (val, settings, data, dataIndex) {
+        var api = new $.fn.dataTable.Api(settings);
+        var rowData = api.row(dataIndex).data();
+        if (val === '1') return rowData.permissions_count > 0;
+        if (val === '0') return rowData.permissions_count === 0;
+        return true;
+    });
+
+    AdminSearchFilter.registerCustomSearch('inUse', function (val, settings, data, dataIndex) {
+        var api = new $.fn.dataTable.Api(settings);
+        var rowData = api.row(dataIndex).data();
+        if (val === '1') return rowData.roles_count > 0;
+        if (val === '0') return rowData.roles_count === 0;
+        return true;
+    });
+
+    window.filterState = {};
+
+    $(document).on('click', '.search-filter-toggle', function () {
+        var target = $(this).data('target');
+        var id = target.replace('filterBar-', '');
+        AdminSearchFilter.toggle(target);
+        window.filterState[id] = AdminSearchFilter.getState(id);
+    });
+
+    $(document).on('change', '.filter-bar select, .filter-bar input', function () {
+        var barId = $(this).closest('.filter-bar').attr('id');
+        var id = barId.replace('filterBar-', '');
+        window.filterState[id] = AdminSearchFilter.getState(id);
+    });
+
+    $(document).on('click', '.filter-reset', function () {
+        var id = $(this).data('target');
+        window.filterState[id] = {};
+    });
 
     // Tab switch manual
     $('button[data-tab]').on('click', function(e) {
@@ -311,9 +493,21 @@ $(function() {
     });
 
     window.deleteRole = function(id) {
-        Admin.confirmDelete(routes.deleteRole.replace(':id', id), function() {
-            if (rolesTable) rolesTable.ajax.reload(null, false);
-        });
+        var row = rolesTable.row($('[onclick*="deleteRole(\'' + id + '\')"]').closest('tr'));
+        var data = row.data();
+        if (data && data.users_count > 0) {
+            var msg = lang.warningRoleInUse.replace(':name', data.name).replace(':count', data.users_count);
+            Admin.confirmWarning(
+                msg,
+                routes.deleteRole.replace(':id', id),
+                function() { if (rolesTable) rolesTable.ajax.reload(null, false); }
+            );
+        } else {
+            var msg = lang.confirmDeleteWith.replace(':name', data.name);
+            Admin.confirmDelete(routes.deleteRole.replace(':id', id), function() {
+                if (rolesTable) rolesTable.ajax.reload(null, false);
+            }, msg);
+        }
     };
 
     // ==================== PERMISSIONS ====================
@@ -347,16 +541,31 @@ $(function() {
     });
 
     window.deletePermission = function(id) {
-        Admin.confirmDelete(routes.deletePermission.replace(':id', id), function() {
-            if (permissionsTable) permissionsTable.ajax.reload(null, false);
-            if (rolesTable) rolesTable.ajax.reload(null, false);
-        });
+        var row = permissionsTable.row($('[onclick*="deletePermission(\'' + id + '\')"]').closest('tr'));
+        var data = row.data();
+        if (data && data.roles_count > 0) {
+            var msg = lang.warningPermissionInUse.replace(':name', data.name).replace(':count', data.roles_count);
+            Admin.confirmWarning(
+                msg,
+                routes.deletePermission.replace(':id', id),
+                function() {
+                    if (permissionsTable) permissionsTable.ajax.reload(null, false);
+                    if (rolesTable) rolesTable.ajax.reload(null, false);
+                }
+            );
+        } else {
+            var msg = lang.confirmDeleteWith.replace(':name', data.name);
+            Admin.confirmDelete(routes.deletePermission.replace(':id', id), function() {
+                if (permissionsTable) permissionsTable.ajax.reload(null, false);
+                if (rolesTable) rolesTable.ajax.reload(null, false);
+            }, msg);
+        }
     };
 
     // ==================== ASSIGN PERMISSIONS ====================
     window.openAssignPermModal = function(roleId, roleName) {
         $('#assignRoleId').val(roleId);
-        $('#assignPermModalTitle').html('<i class="bi bi-shield-check me-2"></i>' + lang.assignPermissionsTo.replace(':name', '<span class="text-decoration-underline">' + escHtml(roleName) + '</span>'));
+        $('#assignPermModalTitle').html('<i class="bi bi-shield-check me-2"></i>' + lang.assignPermissionsTo.replace(':name', '<span class="text-decoration">' + escHtml(roleName) + '</span>'));
 
         var $list = $('#assignPermList').html('<div class="col-12 text-center py-3"><div class="spinner-border spinner-border-sm me-2"></div>' + lang.loading + '</div>');
 

@@ -23,5 +23,19 @@ return [
     'role_in_use'                   => 'Role cannot be deleted because it is still in use by users.',
     'permissions_synced'            => 'Permissions for role have been updated.',
     'failed_to_sync'                => 'Failed to sync permissions.',
+    'warning_role_in_use'           => 'Role <strong>:name</strong> is currently assigned to :count user(s). Deleting it will remove the role from those users.',
+    'warning_permission_in_use'     => 'Permission <strong>:name</strong> is currently assigned to :count role(s). Deleting it will remove the permission from those roles.',
+
+    'filter_placeholder_name'       => 'Search name...',
+    'filter_label_name'             => 'Name',
+    'filter_label_guard'            => 'Guard',
+    'filter_label_has_permissions'  => 'Permissions',
+    'filter_label_in_use'           => 'Used',
+    'filter_guard_all'              => 'All guards',
+    'filter_has_permissions'        => 'Has Permissions',
+    'filter_in_use'                 => 'In Use',
+    'filter_exists'                 => 'Exists',
+    'filter_yes'                    => 'Yes',
+    'filter_no'                     => 'No',
 
 ];

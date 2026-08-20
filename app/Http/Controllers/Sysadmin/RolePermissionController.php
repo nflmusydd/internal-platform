@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Sysadmin;
 use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\Permission;
+use App\Exports\RolesExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -24,8 +25,8 @@ class RolePermissionController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:roles,name',
-            'guard_name' => 'required|string|max:255',
+            'name' => 'required|string|max:30|unique:roles,name',
+            'guard_name' => 'required|string|max:20',
         ]);
 
         DB::beginTransaction();
@@ -58,8 +59,8 @@ class RolePermissionController extends Controller
         $role = Role::where('ulid', $id)->firstOrFail();
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:roles,name,' . $id . ',ulid',
-            'guard_name' => 'required|string|max:255',
+            'name' => 'required|string|max:30|unique:roles,name,' . $id . ',ulid',
+            'guard_name' => 'required|string|max:20',
         ]);
 
         DB::beginTransaction();
@@ -99,13 +100,6 @@ class RolePermissionController extends Controller
     public function destroy(string $id)
     {
         $role = Role::where('ulid', $id)->firstOrFail();
-
-        if ($role->users()->count() > 0) {
-            return response()->json([
-                'success' => false,
-                'message' => ucfirst(__('sysadmin/role-permissions/index.role_in_use')),
-            ], 422);
-        }
 
         DB::beginTransaction();
         try {
@@ -163,7 +157,7 @@ class RolePermissionController extends Controller
 
     public function getRoles()
     {
-        $roles = Role::withCount('permissions')->orderBy('name')->get();
+        $roles = Role::withCount('permissions', 'users')->orderBy('name')->get();
         return response()->json(['data' => $roles]);
     }
 
@@ -176,5 +170,27 @@ class RolePermissionController extends Controller
                 'permissions' => $role->permissions->pluck('name'),
             ],
         ]);
+    }
+
+    public function exportRoles(Request $request)
+    {
+        $roles = Role::withCount('permissions', 'users');
+
+        if ($request->filled('name')) {
+            $roles->where('name', 'LIKE', '%' . $request->name . '%');
+        }
+        if ($request->filled('guard')) {
+            $roles->where('guard_name', $request->guard);
+        }
+        if ($request->has('hasPermissions') && $request->hasPermissions !== '') {
+            if ($request->hasPermissions === '1') {
+                $roles->has('permissions');
+            } else {
+                $roles->doesntHave('permissions');
+            }
+        }
+
+        $roles = $roles->orderBy('name')->get();
+        return (new RolesExport($roles))->download('roles');
     }
 }

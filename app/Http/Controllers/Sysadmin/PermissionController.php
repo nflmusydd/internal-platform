@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Sysadmin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Permission;
+use App\Exports\PermissionsExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -18,8 +19,8 @@ class PermissionController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:permissions,name',
-            'guard_name' => 'required|string|max:255',
+            'name' => 'required|string|max:30|unique:permissions,name',
+            'guard_name' => 'required|string|max:20',
         ]);
 
         DB::beginTransaction();
@@ -54,8 +55,8 @@ class PermissionController extends Controller
         $permission = Permission::where('ulid', $id)->firstOrFail();
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:permissions,name,' . $id . ',ulid',
-            'guard_name' => 'required|string|max:255',
+            'name' => 'required|string|max:30|unique:permissions,name,' . $id . ',ulid',
+            'guard_name' => 'required|string|max:20',
         ]);
 
         DB::beginTransaction();
@@ -112,7 +113,29 @@ class PermissionController extends Controller
 
     public function getAll()
     {
-        $permissions = Permission::orderBy('name')->get();
+        $permissions = Permission::withCount('roles')->orderBy('name')->get();
         return response()->json(['data' => $permissions]);
+    }
+
+    public function exportPermissions(Request $request)
+    {
+        $permissions = Permission::withCount('roles');
+
+        if ($request->filled('name')) {
+            $permissions->where('name', 'LIKE', '%' . $request->name . '%');
+        }
+        if ($request->filled('guard')) {
+            $permissions->where('guard_name', $request->guard);
+        }
+        if ($request->has('inUse') && $request->inUse !== '') {
+            if ($request->inUse === '1') {
+                $permissions->has('roles');
+            } else {
+                $permissions->doesntHave('roles');
+            }
+        }
+
+        $permissions = $permissions->orderBy('name')->get();
+        return (new PermissionsExport($permissions))->download('permissions');
     }
 }

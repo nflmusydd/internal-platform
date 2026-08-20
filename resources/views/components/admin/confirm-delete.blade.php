@@ -19,3 +19,26 @@
         </div>
     </div>
 </div>
+<input type="hidden" id="confirmDeleteDefaultMessage" value="{{ __('general.confirm_delete') }}">
+
+<div class="modal fade" id="confirmWarningModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" style="color:#e67700;">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ ucfirst(__('general.confirm_delete_title')) }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0" id="confirmWarningMessage"></p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">{{ ucfirst(__('general.cancel')) }}</button>
+                <button type="button" class="btn btn-sm fw-semibold" style="background-color:#e67700;color:#fff;" id="btnConfirmWarning">
+                    <i class="bi bi-arrow-right me-1"></i>{{ ucfirst(__('general.continue')) }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

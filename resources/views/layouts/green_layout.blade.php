@@ -11,13 +11,16 @@
     {{-- Internal Platform font --}}
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     
+    {{-- DataTables custom styles --}}
+    <link rel="stylesheet" href="{{ asset('css/admin-datatables.css') }}?v={{ filemtime(public_path('css/admin-datatables.css')) }}">
+    
     <style>
         /* Variabel Warna Utama Berdasarkan Palet */
         :root {
             --primary-green: #043523;       /* Paling gelap: Teks utama & Ikon */
             --primary-green-hover: #0f513a; /* Medium teal: Untuk efek hover text */
-            --bg-body: #f4f7f6;             /* Paling terang: Background utama */
-            --bg-topbar: #ffffff;           /* Hijau muda: Background topbar & dropdown */
+            --bg-body: #f4f7f6;             /* Agak putih: Background utama */
+            --bg-topbar: #ffffff;           /* Putih: Background topbar & dropdown */
             --sidebar-border: #1a4233;      /* Aksen gelap untuk border sidebar toggle */
             --search-focus: #0d9488;        /* Muted cyan untuk border pencarian aktif */
             --sidebar-width: 260px;            /* Lebar sidebar */
