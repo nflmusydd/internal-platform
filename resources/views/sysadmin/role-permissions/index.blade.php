@@ -44,8 +44,8 @@
                     </button>
                     <div class="dropdown">
                         <button class="btn btn-sm btn-outline-secondary dropdown-toggle filter-toolbar-btn" type="button"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-download me-1"></i>{{ ucfirst(__('general.export')) }}
+                                data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
+                            <i class="bi bi-download me-1"></i>{{ ucfirst(__('general.download')) }}
                         </button>
                         <ul class="dropdown-menu shadow-sm">
                             <li>
@@ -113,8 +113,8 @@
                     </button>
                     <div class="dropdown">
                         <button class="btn btn-sm btn-outline-secondary dropdown-toggle filter-toolbar-btn" type="button"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-download me-1"></i>{{ ucfirst(__('general.export')) }}
+                                data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
+                            <i class="bi bi-download me-1"></i>{{ ucfirst(__('general.download')) }}
                         </button>
                         <ul class="dropdown-menu shadow-sm">
                             <li>
@@ -333,7 +333,7 @@ $(function() {
                 loadingRecords: '<div class="spinner-border spinner-border-sm me-2" role="status"></div>{{ __("sysadmin/role-permissions/index.loading_data") }}'
             },
             columns: [
-                { data: null, orderable: false, className: 'ps-3 text-muted', render: function(d,t,r,m) { return m.row + 1; } },
+                { data: null, orderable: false, searchable: false, className: 'ps-3 text-muted', defaultContent: '' },
                 { data: 'name', className: 'fw-semibold' },
                 { data: 'guard_name', render: function(d) { return '<span class="badge bg-secondary">' + escHtml(d) + '</span>'; } },
                 { data: 'permissions_count', render: function(d) {
@@ -351,12 +351,20 @@ $(function() {
             ],
             order: [[1, 'asc']]
         });
+        // tulis ulang kolom "No." setiap tabel berubah
+        rolesTable.on('draw.dt', function () {
+            var info = rolesTable.page.info();
+            rolesTable.column(0, { search: 'applied', order: 'applied', page: 'current' }).nodes().each(function (cell, i) {
+                cell.innerHTML = i + 1 + info.start;
+            });
+        });
         rolesTable.settings()[0]._searchFilterId = 'roles';
         AdminSearchFilter.init('#rolesTable', {
             id: 'roles',
             table: rolesTable,
             columnMap: { name: 1, guard: 2 },
-            customFilters: { hasPermissions: true }
+            customFilters: { hasPermissions: true },
+            onStateChange: function(s) { window.filterState['roles'] = s; }
         });
     }
 
@@ -375,7 +383,7 @@ $(function() {
                 loadingRecords: '<div class="spinner-border spinner-border-sm me-2" role="status"></div>{{ __("sysadmin/role-permissions/index.loading_data") }}'
             },
             columns: [
-                { data: null, orderable: false, className: 'ps-3 text-muted', render: function(d,t,r,m) { return m.row + 1; } },
+                { data: null, orderable: false, searchable: false, className: 'ps-3 text-muted', defaultContent: '' },
                 { data: 'name', className: 'fw-semibold' },
                 { data: 'guard_name', render: function(d) { return '<span class="badge bg-secondary">' + escHtml(d) + '</span>'; } },
                 { data: 'roles_count', render: function(d) {
@@ -393,12 +401,19 @@ $(function() {
             ],
             order: [[1, 'asc']]
         });
+        permissionsTable.on('draw.dt', function () {
+            var info = permissionsTable.page.info();
+            permissionsTable.column(0, { search: 'applied', order: 'applied', page: 'current' }).nodes().each(function (cell, i) {
+                cell.innerHTML = i + 1 + info.start;
+            });
+        });
         permissionsTable.settings()[0]._searchFilterId = 'permissions';
         AdminSearchFilter.init('#permissionsTable', {
             id: 'permissions',
             table: permissionsTable,
             columnMap: { name: 1, guard: 2 },
-            customFilters: { inUse: true }
+            customFilters: { inUse: true },
+            onStateChange: function(s) { window.filterState['permissions'] = s; }
         });
     }
 
@@ -408,8 +423,12 @@ $(function() {
     // ==================== EXPORT ====================
     window.exportData = function(tab, format) {
         var state = window.filterState[tab] || {};
+        var clean = {};
+        $.each(state, function(k, v) {
+            if (v !== '' && v !== null && v !== undefined) clean[k] = v;
+        });
         var url = tab === 'roles' ? routes.exportRoles : routes.exportPermissions;
-        var params = $.param(state);
+        var params = $.param(clean);
         window.location.href = url + (params ? '?' + params : '');
     };
 
@@ -437,17 +456,6 @@ $(function() {
         var id = target.replace('filterBar-', '');
         AdminSearchFilter.toggle(target);
         window.filterState[id] = AdminSearchFilter.getState(id);
-    });
-
-    $(document).on('change', '.filter-bar select, .filter-bar input', function () {
-        var barId = $(this).closest('.filter-bar').attr('id');
-        var id = barId.replace('filterBar-', '');
-        window.filterState[id] = AdminSearchFilter.getState(id);
-    });
-
-    $(document).on('click', '.filter-reset', function () {
-        var id = $(this).data('target');
-        window.filterState[id] = {};
     });
 
     // Tab switch manual

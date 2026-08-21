@@ -33,6 +33,7 @@ return [
     'and'                   => 'and',
     'yes'                   => 'yes',
     'no'                    => 'no',
+    'number'                => 'no.',
     'action'                => 'action',
     'actions'               => 'actions',
     'name'                  => 'name',
@@ -63,9 +64,13 @@ return [
     'dt_info_filtered'      => '(filtered from _MAX_ total entries)',
     'dt_length_menu'        => '_MENU_ per page',
 
+    'download'              => 'download',
+    'upload'                => 'upload',
+    'import'                => 'import',
     'export'                => 'export',
     'export_xlsx'           => 'XLSX',
     'downloaded_on'         => 'Downloaded on',
     'downloaded_by'         => 'Downloaded by',
+    'title'                 => 'Title',
 
 ];

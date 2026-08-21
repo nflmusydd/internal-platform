@@ -2,11 +2,15 @@
 
 namespace App\Exports;
 
-use Illuminate\Http\StreamedResponse;
+use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Border;
+use OpenSpout\Common\Entity\Style\BorderName;
+use OpenSpout\Common\Entity\Style\BorderPart;
+use OpenSpout\Common\Entity\Style\BorderStyle;
+use OpenSpout\Common\Entity\Style\BorderWidth;
 use OpenSpout\Common\Entity\Style\Color;
 use OpenSpout\Common\Entity\Style\Style;
-use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
+use OpenSpout\Writer\XLSX\Writer;
 
 class BaseExport
 {
@@ -21,14 +25,15 @@ class BaseExport
         $this->headers = $headers;
     }
 
-    public function download($filename): StreamedResponse
+    public function download($filename)
     {
         $dir = public_path('exports');
         if (!is_dir($dir)) {
             mkdir($dir, 0777, true);
         }
 
-        $tempPath = $dir . '/' . $filename . '_' . uniqid() . '.xlsx';
+        $timestampedName = $filename . '_' . now()->format('Y-m-d_His');
+        $tempPath = $dir . '/' . $timestampedName . '.xlsx';
         $this->build($tempPath);
 
         $fileToServe = $tempPath;
@@ -39,7 +44,7 @@ class BaseExport
             @unlink($fileToServe);
         }, 200, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '.xlsx"',
+            'Content-Disposition' => 'attachment; filename="' . $timestampedName . '.xlsx"',
             'Cache-Control' => 'no-cache, no-store, must-revalidate',
             'Pragma' => 'no-cache',
             'Expires' => '0',
@@ -48,89 +53,80 @@ class BaseExport
 
     protected function build(string $path): void
     {
-        $writer = WriterEntityFactory::createXLSXWriter();
+        $writer = new Writer();
         $writer->openToFile($path);
 
-        $headerStyle = (new Style())
-            ->setFontSize(14)
-            ->setBold(true)
-            ->setFontName('Arial');
+        // Auto column width based on data content
+        $allRows = array_merge([$this->headers], $this->data);
+        $colWidths = [];
+        foreach ($allRows as $row) {
+            foreach ($row as $colIndex => $value) {
+                $len = mb_strlen((string) $value);
+                $colWidths[$colIndex] = max($colWidths[$colIndex] ?? 0, $len);
+            }
+        }
+        foreach ($colWidths as $colIndex => $maxLen) {
+            $width = min(50, max(10, $maxLen * 1.5 + 4));
+            $writer->getOptions()->setColumnWidth($width, $colIndex + 1);
+        }
 
-        $labelStyle = (new Style())
-            ->setFontSize(10)
-            ->setFontName('Arial');
+        $headerStyle = new Style(
+            fontSize: 10,
+            fontName: 'Arial',
+        );
 
-        $colHeaderStyle = (new Style())
-            ->setFontSize(10)
-            ->setBold(true)
-            ->setFontName('Arial')
-            ->setBackgroundColor(new Color('043523'))
-            ->setFontColor(new Color('FFFFFF'))
-            ->setBorder(new Border(
-                Border::BOTTOM,
-                Border::STYLE_THIN,
-                new Color('0F513A')
-            ));
+        $labelStyle = new Style(
+            fontSize: 10,
+            fontName: 'Arial',
+        );
 
-        $cellStyleBorder = (new Style())
-            ->setFontSize(10)
-            ->setFontName('Arial')
-            ->setBorder(new Border(
-                Border::BOTTOM,
-                Border::STYLE_THIN,
-                new Color('DEE2E6')
-            ));
+        $colHeaderStyle = new Style(
+            fontBold: true,
+            fontSize: 10,
+            fontName: 'Arial',
+            fontColor: Color::WHITE,
+            backgroundColor: Color::toARGB('043523'),
+            border: new Border(
+                new BorderPart(name: BorderName::LEFT, color: '000000', width: BorderWidth::THIN, style: BorderStyle::SOLID),
+                new BorderPart(name: BorderName::RIGHT, color: '000000', width: BorderWidth::THIN, style: BorderStyle::SOLID),
+                new BorderPart(name: BorderName::TOP, color: '000000', width: BorderWidth::THIN, style: BorderStyle::SOLID),
+                new BorderPart(name: BorderName::BOTTOM, color: '000000', width: BorderWidth::THIN, style: BorderStyle::SOLID),
+            ),
+        );
+
+        $cellStyleBorder = new Style(
+            fontSize: 10,
+            fontName: 'Arial',
+            border: new Border(
+                new BorderPart(name: BorderName::LEFT, color: '000000', width: BorderWidth::THIN, style: BorderStyle::SOLID),
+                new BorderPart(name: BorderName::RIGHT, color: '000000', width: BorderWidth::THIN, style: BorderStyle::SOLID),
+                new BorderPart(name: BorderName::TOP, color: '000000', width: BorderWidth::THIN, style: BorderStyle::SOLID),
+                new BorderPart(name: BorderName::BOTTOM, color: '000000', width: BorderWidth::THIN, style: BorderStyle::SOLID),
+            ),
+        );
+
+        $emptyStyle = new Style();
 
         // Row 1: Title
-        $row = WriterEntityFactory::createRow();
-        $cell = WriterEntityFactory::createCell($this->title);
-        $cell->setStyle($headerStyle);
-        $row->setCells([$cell]);
-        $writer->addRow($row);
+        $writer->addRow(Row::fromValuesWithStyle([__('general.title') . ': ' . $this->title], $headerStyle));
 
-        // Row 2: Empty
-        $writer->addRow(WriterEntityFactory::createRow());
-
-        // Row 3: Downloaded on
+        // Row 2: Downloaded on
         $timestamp = now()->format('d/m/Y, H:i') . ' WIB';
-        $row = WriterEntityFactory::createRow();
-        $cell = WriterEntityFactory::createCell(__('general.downloaded_on') . ': ' . $timestamp);
-        $cell->setStyle($labelStyle);
-        $row->setCells([$cell]);
-        $writer->addRow($row);
+        $writer->addRow(Row::fromValuesWithStyle([__('general.downloaded_on') . ': ' . $timestamp], $labelStyle));
 
-        // Row 4: Downloaded by
-        $row = WriterEntityFactory::createRow();
-        $cell = WriterEntityFactory::createCell(__('general.downloaded_by') . ': -');
-        $cell->setStyle($labelStyle);
-        $row->setCells([$cell]);
-        $writer->addRow($row);
+        // Row 3: Downloaded by
+        $writer->addRow(Row::fromValuesWithStyle([__('general.downloaded_by') . ': -'], $labelStyle));
 
-        // Row 5: Empty
-        $writer->addRow(WriterEntityFactory::createRow());
+        // Row 4: Empty
+        $writer->addRow(Row::fromValuesWithStyle([''], $emptyStyle));
 
-        // Row 6: Column headers
-        $row = WriterEntityFactory::createRow();
-        $cells = [];
-        foreach ($this->headers as $header) {
-            $cell = WriterEntityFactory::createCell($header);
-            $cell->setStyle($colHeaderStyle);
-            $cells[] = $cell;
-        }
-        $row->setCells($cells);
-        $writer->addRow($row);
+        // Row 5: Column headers
+        $headerValues = array_values($this->headers);
+        $writer->addRow(Row::fromValuesWithStyle($headerValues, $colHeaderStyle));
 
         // Data rows
-        foreach ($this->data as $index => $record) {
-            $row = WriterEntityFactory::createRow();
-            $cells = [];
-            foreach ($record as $value) {
-                $cell = WriterEntityFactory::createCell($value ?? '-');
-                $cell->setStyle($cellStyleBorder);
-                $cells[] = $cell;
-            }
-            $row->setCells($cells);
-            $writer->addRow($row);
+        foreach ($this->data as $record) {
+            $writer->addRow(Row::fromValuesWithStyle($record, $cellStyleBorder));
         }
 
         $writer->close();

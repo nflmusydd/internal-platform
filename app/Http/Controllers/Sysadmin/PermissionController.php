@@ -127,7 +127,7 @@ class PermissionController extends Controller
         if ($request->filled('guard')) {
             $permissions->where('guard_name', $request->guard);
         }
-        if ($request->has('inUse') && $request->inUse !== '') {
+        if ($request->filled('inUse')) {
             if ($request->inUse === '1') {
                 $permissions->has('roles');
             } else {

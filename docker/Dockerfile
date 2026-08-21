@@ -4,7 +4,8 @@ WORKDIR /app
 
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-scripts && composer clear-cache
+RUN composer install --no-dev --optimize-autoloader --no-scripts --ignore-platform-reqs \
+    && composer clear-cache
 
 COPY . .
 

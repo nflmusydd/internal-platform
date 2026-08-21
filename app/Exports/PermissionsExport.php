@@ -11,10 +11,10 @@ class PermissionsExport extends BaseExport
         $title = ucfirst(__('general.permissions'));
 
         $headers = [
-            __('general.no'),
-            __('general.name'),
-            __('general.guard'),
-            ucfirst(__('general.used_by')),
+            ucwords(__('general.number')),
+            ucwords(__('general.name')),
+            ucwords(__('general.guard')),
+            ucwords(__('general.used_by')),
         ];
 
         $rows = $permissions->map(function ($perm, $index) {

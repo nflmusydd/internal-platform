@@ -182,7 +182,7 @@ class RolePermissionController extends Controller
         if ($request->filled('guard')) {
             $roles->where('guard_name', $request->guard);
         }
-        if ($request->has('hasPermissions') && $request->hasPermissions !== '') {
+        if ($request->filled('hasPermissions')) {
             if ($request->hasPermissions === '1') {
                 $roles->has('permissions');
             } else {

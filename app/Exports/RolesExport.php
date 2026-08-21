@@ -11,11 +11,11 @@ class RolesExport extends BaseExport
         $title = ucfirst(__('general.roles'));
 
         $headers = [
-            __('general.no'),
-            __('general.name'),
-            __('general.guard'),
-            __('general.permissions'),
-            ucfirst(__('general.used_by')),
+            ucwords(__('general.number')),
+            ucwords(__('general.name')),
+            ucwords(__('general.guard')),
+            ucwords(__('general.permissions')),
+            ucwords(__('general.used_by')),
         ];
 
         $rows = $roles->map(function ($role, $index) {

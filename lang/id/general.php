@@ -33,6 +33,7 @@ return [
     'and'                   => 'dan',
     'yes'                   => 'ya',
     'no'                    => 'tidak',
+    'number'                => 'no.',
     'action'                => 'aksi',
     'actions'               => 'aksi',
     'name'                  => 'nama',
@@ -63,9 +64,13 @@ return [
     'dt_info_filtered'      => '(disaring dari _MAX_ total data)',
     'dt_length_menu'        => '_MENU_ per halaman',
 
+    'download'              => 'unduh',
+    'upload'                => 'unggah',
+    'import'                => 'impor',
     'export'                => 'ekspor',
     'export_xlsx'           => 'XLSX',
     'downloaded_on'         => 'Diunduh pada',
     'downloaded_by'         => 'Diunduh oleh',
+    'title'                 => 'Judul',
 
 ];

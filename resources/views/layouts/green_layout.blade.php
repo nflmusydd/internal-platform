@@ -13,6 +13,7 @@
     
     {{-- DataTables custom styles --}}
     <link rel="stylesheet" href="{{ asset('css/admin-datatables.css') }}?v={{ filemtime(public_path('css/admin-datatables.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/admin-toolbar.css') }}?v={{ filemtime(public_path('css/admin-toolbar.css')) }}">
     
     <style>
         /* Variabel Warna Utama Berdasarkan Palet */
