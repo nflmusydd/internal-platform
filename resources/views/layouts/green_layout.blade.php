@@ -698,9 +698,9 @@
                         <div class="user-profile dropdown-toggle" id="userProfileToggle">
                             {{-- <img src="{{ asset('images/user-man.jpg') }}" class="rounded-circle text-primary-green d-flex align-items-center justify-content-center hover-effect avatar-sm no-border"> --}}
                             <div class="rounded-circle text-primary-green d-flex align-items-center justify-content-center hover-effect avatar-sm fw-bold">
-                                {{ \App\Helpers\TextHelper::getInitials('Muhammad Naufal Musyaddad') }} 
+                                {{ \App\Helpers\TextHelper::getInitials(Auth::user()->name ?? '') }} 
                             </div>
-                            <span class="hover-text fs-6 fw-semibold d-none d-sm-block">{{ \App\Helpers\TextHelper::limitWordsByChar('Muhammad Naufal Musyaddad', 25) }}</span>
+                            <span class="hover-text fs-6 fw-semibold d-none d-sm-block">{{ \App\Helpers\TextHelper::limitWordsByChar(Auth::user()->name ?? '', 25) }}</span>
                         </div>
                         <div class="dropdown-menu" id="userDropdownMenu">
                             <a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i> {{  ucfirst(__('general.settings')) }} </a>
@@ -708,14 +708,17 @@
                         </div>
                     </div>
 
-                    <a href="/login" class="text-decoration-none ms-2 hover-effect text-primary-green" title="{{  ucfirst(__('general.logout')) }}">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 2H5C3.9 2 3 2.9 3 4V20C3 21.1 3.9 22 5 22H12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M12 2Q14 2 14 4V6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M14 18V20Q14 22 12 22" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M17 9L21 12L17 15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </a>
+                    <form method="POST" action="{{ route('logout') }}" class="d-inline">
+                        @csrf
+                        <button type="submit" class="text-decoration-none ms-2 hover-effect text-primary-green bg-transparent border-0 p-0" title="{{ ucfirst(__('general.logout')) }}">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2H5C3.9 2 3 2.9 3 4V20C3 21.1 3.9 22 5 22H12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 2Q14 2 14 4V6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M14 18V20Q14 22 12 22" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M17 9L21 12L17 15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </form>
 
                 </div>
             </header>

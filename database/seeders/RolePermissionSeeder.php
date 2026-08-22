@@ -117,13 +117,13 @@ class RolePermissionSeeder extends Seeder
             // Setup User
             $adminUser = User::firstOrCreate(
                 ['email' => 'otoriterman@internal.com'],
-                ['name' => 'MANUSIA OTORITER', 'password' => bcrypt('test1234'), 'created_by' => 1, 'updated_by' => 1],
+                ['name' => 'MANUSIA OTORITER', 'password' => bcrypt('test1234'), 'is_active' => 1, 'created_by' => 0, 'updated_by' => 0],
             );
             $adminUser->syncRoles(['SUPER ADMIN']);
 
             $managerUser = User::firstOrCreate(
                 ['email' => 'manager@internal.com'],
-                ['name' => 'MANAGER MAGER', 'password' => bcrypt('test1234'), 'created_by' => 1, 'updated_by' => 1],
+                ['name' => 'MANAGER MAGER', 'password' => bcrypt('test1234'), 'is_active' => 1, 'created_by' => 0, 'updated_by' => 0],
             );
             $managerUser->syncRoles(['MANAGER']);
 

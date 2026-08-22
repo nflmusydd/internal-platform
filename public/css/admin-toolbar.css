@@ -181,6 +181,18 @@
     justify-content: center;
     transition: all 0.2s ease;
 }
+.filter-reset:hover {
+    background-color: #e8f5e9 !important;
+    border-color: #043523 !important;
+    color: #043523 !important;
+}
+.filter-reset:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(4, 53, 35, 0.15) !important;
+}
+.filter-reset:active {
+    transform: scale(0.96);
+}
 
 /* Export Button */
 .btn.filter-toolbar-btn {

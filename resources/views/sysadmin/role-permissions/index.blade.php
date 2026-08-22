@@ -74,7 +74,7 @@
                         'key' => 'guard', 
                         'type' => 'select', 
                         'label' => __('sysadmin/role-permissions/index.filter_label_guard'),
-                        'placeholder' => __('sysadmin/role-permissions/index.filter_guard_all')
+                        'placeholder' => ucfirst(__('general.all'))
                         // options diisi oleh initRolesTable() dan populateSelect()  --> otomatis baca data unique 
                     ],
                     [
@@ -143,7 +143,7 @@
                         'key' => 'guard', 
                         'type' => 'select', 
                         'label' => __('sysadmin/role-permissions/index.filter_label_guard'),
-                        'placeholder' => __('sysadmin/role-permissions/index.filter_guard_all')
+                        'placeholder' => ucfirst(__('general.all'))
                     ],
                     [
                         'key' => 'inUse', 
