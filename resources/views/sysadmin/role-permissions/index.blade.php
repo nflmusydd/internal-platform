@@ -87,6 +87,16 @@
                             '0' => __('sysadmin/role-permissions/index.filter_no'),
                         ]
                     ],
+                    [
+                        'key' => 'hasUsers', 
+                        'type' => 'select', 
+                        'label' => ucfirst(__('general.used')),
+                        'placeholder' => ucfirst(__('sysadmin/role-permissions/index.filter_exists')) . ' ' . __('general.and') . ' ' . ucfirst(__('sysadmin/role-permissions/index.filter_no')), 
+                        'options' => [
+                            '1' => __('sysadmin/role-permissions/index.filter_exists'),
+                            '0' => __('sysadmin/role-permissions/index.filter_no'),
+                        ]
+                    ],
                 ],
             ])
             <table class="table table-hover align-middle mb-0" id="rolesTable" style="width:100%">
@@ -96,6 +106,7 @@
                         <th>{{ ucfirst(__('general.name')) }}</th>
                         <th>{{ ucfirst(__('general.guard')) }}</th>
                         <th>{{ ucfirst(__('general.permissions')) }}</th>
+                        <th>{{ ucfirst(__('general.used_by')) }}</th>
                         <th class="text-center">{{ ucfirst(__('general.actions')) }}</th>
                     </tr>
                 </thead>
@@ -190,12 +201,12 @@
                         <label for="roleName" class="form-label fw-semibold small">{{ __('sysadmin/role-permissions/index.name_label') }} <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="roleName" name="name" required
                                placeholder="{{ __('sysadmin/role-permissions/index.example_role_placeholder') }}">
-                        <div class="invalid-feedback"></div>
+                        <div class="invalid-feedback" id="roleNameError"></div>
                     </div>
                     <div class="mb-3">
                         <label for="roleGuard" class="form-label fw-semibold small">{{ __('sysadmin/role-permissions/index.guard_label') }} <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="roleGuard" name="guard_name" value="web" required>
-                        <div class="invalid-feedback"></div>
+                        <div class="invalid-feedback" id="roleGuardError"></div>
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
@@ -226,12 +237,12 @@
                         <label for="permissionName" class="form-label fw-semibold small">{{ __('sysadmin/role-permissions/index.name_label') }} <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="permissionName" name="name" required
                                placeholder="{{ __('sysadmin/role-permissions/index.example_permission_placeholder') }}">
-                        <div class="invalid-feedback"></div>
+                        <div class="invalid-feedback" id="permissionNameError"></div>
                     </div>
                     <div class="mb-3">
                         <label for="permissionGuard" class="form-label fw-semibold small">{{ __('sysadmin/role-permissions/index.guard_label') }} <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="permissionGuard" name="guard_name" value="web" required>
-                        <div class="invalid-feedback"></div>
+                        <div class="invalid-feedback" id="permissionGuardError"></div>
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
@@ -307,11 +318,16 @@ $(function() {
         confirmDeleteWith: @json(__('general.confirm_delete_with')),
         noPermissionsAvailable: @json(__('sysadmin/role-permissions/index.no_permissions_available')),
         permissionCount: @json(__('sysadmin/role-permissions/index.permission_count')),
+        usersCount: @json(__('general.count_users')),
         assignPermissionsTo: @json(__('sysadmin/role-permissions/index.assign_permissions_to')),
         titleEdit: @json(__('sysadmin/role-permissions/index.title_edit')),
         titleDelete: @json(__('sysadmin/role-permissions/index.title_delete')),
         warningRoleInUse: @json(__('sysadmin/role-permissions/index.warning_role_in_use')),
         warningPermissionInUse: @json(__('sysadmin/role-permissions/index.warning_permission_in_use')),
+        validationRequired: @json(__('validation.required')),
+        validationMaxString: @json(__('validation.max.string')),
+        attrName: @json(__('validation.attributes.name')),
+        attrGuardName: @json(__('validation.attributes.guard')),
     };
 
     // ==================== DATATABLES INIT ====================
@@ -337,8 +353,14 @@ $(function() {
                 { data: 'name', className: 'fw-semibold' },
                 { data: 'guard_name', render: function(d) { return '<span class="badge bg-secondary">' + escHtml(d) + '</span>'; } },
                 { data: 'permissions_count', render: function(d) {
+                    if (d === 0) return '<span class="text-muted">-</span>';
                     var label = d !== 1 ? lang.permissionCount.split('|')[1] : lang.permissionCount.split('|')[0];
                     return '<span class="badge bg-info text-dark">' + label.replace(':count', d) + '</span>';
+                }},
+                { data: 'users_count', render: function(d) {
+                    if (d === 0) return '<span class="text-muted">-</span>';
+                    var label = d !== 1 ? lang.usersCount.split('|')[1] : lang.usersCount.split('|')[0];
+                    return '<span class="badge bg-warning text-dark">' + label.replace(':count', d) + '</span>';
                 }},
                 { data: null, orderable: false, className: 'text-center', render: function(d) {
                     return '<button class="btn btn-sm btn-outline-primary me-1" onclick="openAssignPermModal(\'' + d.ulid + '\', \'' + escHtml(d.name) + '\')" title="' + lang.titleEdit + '"><i class="bi bi-shield-check"></i></button>' +
@@ -363,7 +385,7 @@ $(function() {
             id: 'roles',
             table: rolesTable,
             columnMap: { name: 1, guard: 2 },
-            customFilters: { hasPermissions: true },
+            customFilters: { hasPermissions: true, hasUsers: true },
             onStateChange: function(s) { window.filterState['roles'] = s; }
         });
     }
@@ -441,6 +463,14 @@ $(function() {
         return true;
     });
 
+    AdminSearchFilter.registerCustomSearch('hasUsers', function (val, settings, data, dataIndex) {
+        var api = new $.fn.dataTable.Api(settings);
+        var rowData = api.row(dataIndex).data();
+        if (val === '1') return rowData.users_count > 0;
+        if (val === '0') return rowData.users_count === 0;
+        return true;
+    });
+
     AdminSearchFilter.registerCustomSearch('inUse', function (val, settings, data, dataIndex) {
         var api = new $.fn.dataTable.Api(settings);
         var rowData = api.row(dataIndex).data();
@@ -474,6 +504,7 @@ $(function() {
     // ==================== ROLES ====================
     window.openRoleModal = function(id, name, guard) {
         Admin.resetModal('#roleModal');
+        $('#roleId').val('');
         $('#roleModalTitle').html('<i class="bi bi-shield-lock me-2"></i>' + (id ? lang.editRole : lang.addRole));
         if (id) {
             $('#roleId').val(id);
@@ -483,20 +514,46 @@ $(function() {
         new bootstrap.Modal('#roleModal').show();
     };
 
+    // ==================== ROLE FORM SUBMIT ====================
+    var originalRoleSubmitHtml = $('#btnRoleSubmit').html();
     $('#roleForm').on('submit', function(e) {
         e.preventDefault();
         var id = $('#roleId').val();
         var url = id ? routes.updateRole.replace(':id', id) : routes.storeRole;
         var method = id ? 'PUT' : 'POST';
 
+        var $name = $('#roleName'), $guard = $('#roleGuard');
+        $name.removeClass('is-invalid'); $guard.removeClass('is-invalid');
+        $('#roleNameError, #roleGuardError').text('');
+
+        var valid = true;
+        if (!$name.val().trim()) {
+            $name.addClass('is-invalid');
+            $('#roleNameError').text(lang.validationRequired.replace(':attribute', lang.attrName));
+            valid = false;
+        } else if ($name.val().length > 30) {
+            $name.addClass('is-invalid');
+            $('#roleNameError').text(lang.validationMaxString.replace(':attribute', lang.attrName).replace(':max', '30'));
+            valid = false;
+        }
+        if (!$guard.val().trim()) {
+            $guard.addClass('is-invalid');
+            $('#roleGuardError').text(lang.validationRequired.replace(':attribute', lang.attrGuardName));
+            valid = false;
+        } else if ($guard.val().length > 20) {
+            $guard.addClass('is-invalid');
+            $('#roleGuardError').text(lang.validationMaxString.replace(':attribute', lang.attrGuardName).replace(':max', '20'));
+            valid = false;
+        }
+        if (!valid) return;
+
+        $('#btnRoleSubmit').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>' + window.adminTranslations.saving);
         Admin.ajax(url, method, $(this).serialize(), function(res) {
             Admin.toast(res.message, 'success');
             bootstrap.Modal.getInstance('#roleModal').hide();
             if (rolesTable) rolesTable.ajax.reload(null, false);
         }, function(xhr) {
-            if (xhr.status === 422 && xhr.responseJSON?.errors) {
-                Admin.showErrors('#roleModal', xhr.responseJSON.errors);
-            }
+            $('#btnRoleSubmit').prop('disabled', false).html(originalRoleSubmitHtml);
         });
     });
 
@@ -521,6 +578,7 @@ $(function() {
     // ==================== PERMISSIONS ====================
     window.openPermissionModal = function(id, name, guard) {
         Admin.resetModal('#permissionModal');
+        $('#permissionId').val('');
         $('#permissionModalTitle').html('<i class="bi bi-key me-2"></i>' + (id ? lang.editPermission : lang.addPermission));
         if (id) {
             $('#permissionId').val(id);
@@ -530,21 +588,47 @@ $(function() {
         new bootstrap.Modal('#permissionModal').show();
     };
 
+    // ==================== PERMISSION FORM SUBMIT ====================
+    var originalPermSubmitHtml = $('#btnPermSubmit').html();
     $('#permissionForm').on('submit', function(e) {
         e.preventDefault();
         var id = $('#permissionId').val();
         var url = id ? routes.updatePermission.replace(':id', id) : routes.storePermission;
         var method = id ? 'PUT' : 'POST';
 
+        var $name = $('#permissionName'), $guard = $('#permissionGuard');
+        $name.removeClass('is-invalid'); $guard.removeClass('is-invalid');
+        $('#permissionNameError, #permissionGuardError').text('');
+
+        var valid = true;
+        if (!$name.val().trim()) {
+            $name.addClass('is-invalid');
+            $('#permissionNameError').text(lang.validationRequired.replace(':attribute', lang.attrName));
+            valid = false;
+        } else if ($name.val().length > 30) {
+            $name.addClass('is-invalid');
+            $('#permissionNameError').text(lang.validationMaxString.replace(':attribute', lang.attrName).replace(':max', '30'));
+            valid = false;
+        }
+        if (!$guard.val().trim()) {
+            $guard.addClass('is-invalid');
+            $('#permissionGuardError').text(lang.validationRequired.replace(':attribute', lang.attrGuardName));
+            valid = false;
+        } else if ($guard.val().length > 20) {
+            $guard.addClass('is-invalid');
+            $('#permissionGuardError').text(lang.validationMaxString.replace(':attribute', lang.attrGuardName).replace(':max', '20'));
+            valid = false;
+        }
+        if (!valid) return;
+
+        $('#btnPermSubmit').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>' + window.adminTranslations.saving);
         Admin.ajax(url, method, $(this).serialize(), function(res) {
             Admin.toast(res.message, 'success');
             bootstrap.Modal.getInstance('#permissionModal').hide();
             if (permissionsTable) permissionsTable.ajax.reload(null, false);
             if (rolesTable) rolesTable.ajax.reload(null, false);
         }, function(xhr) {
-            if (xhr.status === 422 && xhr.responseJSON?.errors) {
-                Admin.showErrors('#permissionModal', xhr.responseJSON.errors);
-            }
+            $('#btnPermSubmit').prop('disabled', false).html(originalPermSubmitHtml);
         });
     });
 
@@ -600,28 +684,57 @@ $(function() {
         new bootstrap.Modal('#assignPermModal').show();
     };
 
+    // ==================== ASSIGN PERMISSIONS SUBMIT ====================
+    var originalAssignSubmitHtml = $('#btnAssignPermSubmit').html();
     $('#btnAssignPermSubmit').on('click', function() {
         var roleId = $('#assignRoleId').val();
         var perms = [];
         $('.assign-perm-check:checked').each(function() { perms.push($(this).val()); });
 
+        $('#btnAssignPermSubmit').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>' + window.adminTranslations.saving);
         Admin.ajax(routes.syncPermissions.replace(':id', roleId), 'PUT', { permissions: perms }, function(res) {
             Admin.toast(res.message, 'success');
             bootstrap.Modal.getInstance('#assignPermModal').hide();
             if (rolesTable) rolesTable.ajax.reload(null, false);
+        }, function() {
+            $('#btnAssignPermSubmit').prop('disabled', false).html(originalAssignSubmitHtml);
         });
     });
 
     // ==================== CONFIRM DELETE ====================
+    var originalDeleteHtml = $('#btnConfirmDelete').html();
     $('#btnConfirmDelete').on('click', function() {
         var $modal = $('#confirmDeleteModal');
         var url = $modal.data('delete-url');
         var callback = $modal.data('on-success');
+        $('#btnConfirmDelete').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>' + window.adminTranslations.deleting);
         Admin.ajax(url, 'DELETE', {}, function(res) {
             Admin.toast(res.message, 'success');
             bootstrap.Modal.getInstance('#confirmDeleteModal').hide();
             if (callback) callback();
+        }, function() {
+            $('#btnConfirmDelete').prop('disabled', false).html(originalDeleteHtml);
         });
+    });
+
+    // ==================== CLEAR ERRORS ON INPUT ====================
+    $('#roleName').on('input', function() { $(this).removeClass('is-invalid'); $('#roleNameError').text(''); });
+    $('#roleGuard').on('input', function() { $(this).removeClass('is-invalid'); $('#roleGuardError').text(''); });
+    $('#permissionName').on('input', function() { $(this).removeClass('is-invalid'); $('#permissionNameError').text(''); });
+    $('#permissionGuard').on('input', function() { $(this).removeClass('is-invalid'); $('#permissionGuardError').text(''); });
+
+    // ==================== RESET BUTTON STATE ON MODAL CLOSE ====================
+    $('#roleModal').on('hidden.bs.modal', function() {
+        $('#btnRoleSubmit').prop('disabled', false).html(originalRoleSubmitHtml);
+    });
+    $('#permissionModal').on('hidden.bs.modal', function() {
+        $('#btnPermSubmit').prop('disabled', false).html(originalPermSubmitHtml);
+    });
+    $('#assignPermModal').on('hidden.bs.modal', function() {
+        $('#btnAssignPermSubmit').prop('disabled', false).html(originalAssignSubmitHtml);
+    });
+    $('#confirmDeleteModal').on('hidden.bs.modal', function() {
+        $('#btnConfirmDelete').prop('disabled', false).html(originalDeleteHtml);
     });
 
     // ==================== HELPERS ====================

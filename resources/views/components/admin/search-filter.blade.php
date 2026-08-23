@@ -8,11 +8,12 @@
             @if(($filter['type'] ?? 'text') === 'select')
                 <div class="dropdown custom-filter-dropdown">
                     <button class="filter-dropdown-toggle dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        {{ $filter['placeholder'] ?? ucfirst(__('general.all')) }}
+                        <i class="bi bi-chevron-down filter-dropdown-icon"></i>
+                        <span class="filter-dropdown-text">{{ $filter['placeholder'] ?? ucfirst(__('general.all')) }}</span>
                     </button>
                     <ul class="dropdown-menu shadow-sm">
                         @if(!empty($filter['placeholder']))
-                            <li><a class="dropdown-item" href="javascript:void(0)" data-value="">{{ $filter['placeholder'] }}</a></li>
+                            <li><a class="dropdown-item active" href="javascript:void(0)" data-value="">{{ $filter['placeholder'] }}</a></li>
                         @endif
                         @if(!empty($filter['options']))
                             @foreach($filter['options'] as $val => $label)
@@ -32,7 +33,7 @@
         </div>
     @endforeach
 
-    <div class="filter-group ms-auto">
+    <div class="filter-group filter-reset-group">
         <button class="btn btn-sm btn-outline-secondary filter-reset" type="button"
                 data-target="{{ $id }}" title="{{ ucfirst(__('general.reset')) }}">
             <i class="bi bi-arrow-counterclockwise me-1 fs-5"></i>{{ ucfirst(__('general.reset')) }}

@@ -34,8 +34,8 @@ class RolePermissionController extends Controller
             $role = Role::create([
                 'name' => $validated['name'],
                 'guard_name' => $validated['guard_name'],
-                'created_by' => auth()->id() ?? 1,
-                'updated_by' => auth()->id() ?? 1,
+                'created_by' => auth()->id(),
+                'updated_by' => auth()->id(),
             ]);
 
             DB::commit();
@@ -68,7 +68,7 @@ class RolePermissionController extends Controller
             $role->update([
                 'name' => $validated['name'],
                 'guard_name' => $validated['guard_name'],
-                'updated_by' => auth()->id() ?? 1,
+                'updated_by' => auth()->id(),
             ]);
 
             DB::commit();
@@ -126,13 +126,13 @@ class RolePermissionController extends Controller
         $role = Role::where('ulid', $id)->firstOrFail();
 
         $validated = $request->validate([
-            'permissions' => 'required|array',
+            'permissions' => 'nullable|array',
             'permissions.*' => 'string|exists:permissions,name',
         ]);
 
         DB::beginTransaction();
         try {
-            $role->syncPermissions($validated['permissions']);
+            $role->syncPermissions($validated['permissions'] ?? []);
 
             app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 
@@ -187,6 +187,13 @@ class RolePermissionController extends Controller
                 $roles->has('permissions');
             } else {
                 $roles->doesntHave('permissions');
+            }
+        }
+        if ($request->filled('hasUsers')) {
+            if ($request->hasUsers === '1') {
+                $roles->has('users');
+            } else {
+                $roles->doesntHave('users');
             }
         }
 

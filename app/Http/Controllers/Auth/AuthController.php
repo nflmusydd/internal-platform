@@ -16,15 +16,15 @@ class AuthController extends Controller
         if (Auth::check()) {
             return redirect('/');
         }
-        return view('auth.login');
+        return view('auth.auth2', ['authView' => 'login']);
     }
 
-    public function showAuth()
+    public function showRegister()
     {
         if (Auth::check()) {
             return redirect('/');
         }
-        return view('auth.auth');
+        return view('auth.auth2', ['authView' => 'register']);
     }
 
     public function login(Request $request)
@@ -56,14 +56,6 @@ class AuthController extends Controller
         $request->session()->regenerate();
 
         return redirect()->intended('/');
-    }
-
-    public function showRegister()
-    {
-        if (Auth::check()) {
-            return redirect('/');
-        }
-        return view('auth.register');
     }
 
     public function register(Request $request)

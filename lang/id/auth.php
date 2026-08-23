@@ -31,7 +31,7 @@ return [
     'register_success' => 'Pendaftaran berhasil. Silakan masuk.',
     'register_failed' => 'Pendaftaran gagal. Silakan coba lagi.',
     'password_confirmation' => 'Konfirmasi Password',
-    'placeholder_name' => 'cth: John Doe',
+    'placeholder_name' => 'cth: Sugianti',
     'placeholder_password_confirmation' => 'konfirmasi password Anda',
     'have_account' => 'Sudah punya akun?',
     'no_account' => 'Belum punya akun?',

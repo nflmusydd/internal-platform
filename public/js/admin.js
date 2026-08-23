@@ -12,7 +12,7 @@ var Admin = (function () {
                 if (onSuccess) onSuccess(response);
             },
             error: function (xhr) {
-                var msg = 'An error occured';
+                var msg = (window.adminTranslations && window.adminTranslations.errorOccurred) || 'An error occurred';
                 if (xhr.responseJSON) {
                     msg = xhr.responseJSON.message || msg;
                     if (xhr.responseJSON.errors) {
@@ -20,14 +20,19 @@ var Admin = (function () {
                         if (Array.isArray(first)) msg = first[0];
                     }
                 }
-                showToast(msg, 'danger');
+                showToast(msg, 'danger', { position: 'center', autohide: false });
                 if (onError) onError(xhr);
             }
         });
     }
 
-    function showToast(message, type) {
+    function showToast(message, type, opts) {
         type = type || 'success';
+        opts = opts || {};
+        var position = opts.position || 'right';
+        var autohide = opts.autohide !== undefined ? opts.autohide : true;
+        var delay = opts.delay !== undefined ? opts.delay : 4000;
+
         var toastId = 'toast-' + Date.now();
         var iconMap = {
             success: 'bi-check-circle-fill',
@@ -41,12 +46,26 @@ var Admin = (function () {
             '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
             '</div></div>';
 
-        var $container = $('#toast-container');
+        var positionMap = {
+            'top-right':  'top:20px;right:20px;',
+            'top-left':   'top:20px;left:20px;',
+            'top-center': 'top:20px;left:50%;transform:translateX(-50%);',
+            'center':     'top:80px;left:50%;transform:translateX(-50%);',
+            'right':      'top:80px;right:20px;',
+            'left':       'top:80px;left:20px;'
+        };
+
+        var containerId = 'toast-container-' + position;
+        var $container = $('#' + containerId);
         if (!$container.length) {
-            $container = $('<div id="toast-container" style="position:fixed;top:20px;right:20px;z-index:9999;min-width:300px;"></div>').appendTo('body');
+            var posStyle = positionMap[position] || positionMap['top-right'];
+            $container = $('<div id="' + containerId + '" style="position:fixed;' + posStyle + 'z-index:9999;min-width:300px;"></div>').appendTo('body');
         }
+
+        $container.empty();
+
         var $toast = $(html).appendTo($container);
-        var bsToast = new bootstrap.Toast($toast[0], { delay: 4000 });
+        var bsToast = new bootstrap.Toast($toast[0], { autohide: autohide, delay: delay });
         bsToast.show();
         $toast.on('hidden.bs.toast', function () { $toast.remove(); });
     }
@@ -55,18 +74,23 @@ var Admin = (function () {
         var $form = $(modalEl).find('form');
         $form[0].reset();
         $form.find('.is-invalid').removeClass('is-invalid');
-        $form.find('.invalid-feedback').remove();
+        $form.find('.invalid-feedback').text('');
         $form.find('.text-danger').remove();
     }
 
     function showValidationErrors(modalEl, errors) {
         var $form = $(modalEl).find('form');
         $form.find('.is-invalid').removeClass('is-invalid');
-        $form.find('.invalid-feedback').remove();
+        $form.find('.invalid-feedback').text('');
         $.each(errors, function (field, msgs) {
             var $input = $form.find('[name="' + field + '"]');
             $input.addClass('is-invalid');
-            $input.after('<div class="invalid-feedback">' + msgs[0] + '</div>');
+            var $feedback = $('#' + field + 'Error');
+            if ($feedback.length) {
+                $feedback.text(msgs[0]);
+            } else {
+                $input.after('<div class="invalid-feedback">' + msgs[0] + '</div>');
+            }
         });
     }
 
@@ -91,6 +115,17 @@ var Admin = (function () {
             confirmDelete(url, onSuccess);
         });
     }
+
+    $(document).on('hidden.bs.modal', '.modal', function () {
+        $('[id^="toast-container-"]').each(function () {
+            $(this).find('.toast').each(function () {
+                if (!$(this).hasClass('text-bg-success')) {
+                    var bsToast = bootstrap.Toast.getInstance(this);
+                    if (bsToast) bsToast.hide();
+                }
+            });
+        });
+    });
 
     return {
         ajax: ajaxRequest,

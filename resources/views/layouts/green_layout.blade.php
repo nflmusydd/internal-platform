@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ ucwords(__('general.internal_platform')) }}</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/mnm_logo.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     
@@ -703,8 +704,8 @@
                             <span class="hover-text fs-6 fw-semibold d-none d-sm-block">{{ \App\Helpers\TextHelper::limitWordsByChar(Auth::user()->name ?? '', 25) }}</span>
                         </div>
                         <div class="dropdown-menu" id="userDropdownMenu">
-                            <a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i> {{  ucfirst(__('general.settings')) }} </a>
                             <a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i> {{  ucfirst(__('general.profile')) }}</a>
+                            <a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i> {{  ucfirst(__('general.settings')) }} </a>
                         </div>
                     </div>
 
@@ -782,6 +783,12 @@
                         $('.layout-main-container').css('transition', '');
                         $('#topbarSpacer').css('transition', '');
                         restoringSidebar = false;
+                        setTimeout(function() {
+                            $.fn.dataTable.tables().forEach(function(table) {
+                                var dt = $(table).DataTable();
+                                if (dt) dt.columns.adjust();
+                            });
+                        }, 350);
                     });
                 });
             }
@@ -795,6 +802,12 @@
                 $(this).toggleClass('rotated');
                 var isOpen = $('#appSidebar').hasClass('collapsed') ? 'false' : 'true';
                 localStorage.setItem(LS_KEY_SIDEBAR, isOpen);
+                setTimeout(function() {
+                    $.fn.dataTable.tables().forEach(function(table) {
+                        var dt = $(table).DataTable();
+                        if (dt) dt.columns.adjust();
+                    });
+                }, 350);
             });
             
             // ==========================================
@@ -908,6 +921,12 @@
                 $('#appSidebar').addClass('collapsed');
                 $('.app-wrapper').removeClass('sidebar-open');
                 $('#sidebarToggleBtn').removeClass('rotated');
+                setTimeout(function() {
+                    $.fn.dataTable.tables().forEach(function(table) {
+                        var dt = $(table).DataTable();
+                        if (dt) dt.columns.adjust();
+                    });
+                }, 350);
             });
 
             // ==========================================
@@ -939,6 +958,13 @@
     </script>
 
     {{-- @yield('content_tailscript') --}}
+    <script>
+        window.adminTranslations = {
+            errorOccurred: @json(__('general.error_occurred')),
+            saving: @json(__('general.saving')),
+            deleting: @json(__('general.deleting')),
+        };
+    </script>
     @stack('scripts')
 </body>
 </html>

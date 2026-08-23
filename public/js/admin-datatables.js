@@ -106,7 +106,7 @@ var AdminSearchFilter = (function () {
             var val = $item.data('value');
 
             $input.val(val);
-            $dropdown.find('.filter-dropdown-toggle').text($item.text());
+            $dropdown.find('.filter-dropdown-text').text($item.text());
             $dropdown.find('.dropdown-item').removeClass('active');
             $item.addClass('active');
 
@@ -148,7 +148,7 @@ var AdminSearchFilter = (function () {
         $bar.find('.custom-filter-dropdown').each(function() {
             var $dropdown = $(this);
             var $firstItem = $dropdown.find('.dropdown-item:first');
-            $dropdown.find('.filter-dropdown-toggle').text($firstItem.text());
+            $dropdown.find('.filter-dropdown-text').text($firstItem.text());
             $dropdown.find('.dropdown-item').removeClass('active');
             $firstItem.addClass('active');
         });

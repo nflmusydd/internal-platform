@@ -115,7 +115,8 @@ class BaseExport
         $writer->addRow(Row::fromValuesWithStyle([__('general.downloaded_on') . ': ' . $timestamp], $labelStyle));
 
         // Row 3: Downloaded by
-        $writer->addRow(Row::fromValuesWithStyle([__('general.downloaded_by') . ': -'], $labelStyle));
+        $downloadedBy = auth()->check() ? auth()->user()->name : '-';
+        $writer->addRow(Row::fromValuesWithStyle([__('general.downloaded_by') . ': ' . $downloadedBy], $labelStyle));
 
         // Row 4: Empty
         $writer->addRow(Row::fromValuesWithStyle([''], $emptyStyle));

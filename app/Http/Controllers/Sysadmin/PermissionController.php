@@ -28,8 +28,8 @@ class PermissionController extends Controller
             $permission = Permission::create([
                 'name' => $validated['name'],
                 'guard_name' => $validated['guard_name'],
-                'created_by' => auth()->id() ?? 1,
-                'updated_by' => auth()->id() ?? 1,
+                'created_by' => auth()->id(),
+                'updated_by' => auth()->id(),
             ]);
 
             app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
@@ -64,7 +64,7 @@ class PermissionController extends Controller
             $permission->update([
                 'name' => $validated['name'],
                 'guard_name' => $validated['guard_name'],
-                'updated_by' => auth()->id() ?? 1,
+                'updated_by' => auth()->id(),
             ]);
 
             app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();

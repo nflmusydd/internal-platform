@@ -14,7 +14,6 @@ use Illuminate\Support\Facades\Route;
 //     AUTH
 // ===============
 Route::middleware('guest')->group(function () {
-    Route::get('/auth', [AuthController::class, 'showAuth'])->name('auth');
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
