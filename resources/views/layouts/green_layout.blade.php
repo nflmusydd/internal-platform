@@ -478,9 +478,66 @@
             align-items: center; 
             gap: 10px; 
         }
-        .dropdown-item:active { 
-            background-color: var(--primary-green) !important; 
-            color: white !important; 
+        .dropdown-item:active {
+            background-color: var(--primary-green) !important;
+            color: white !important;
+        }
+
+        /* Draggable Modal */
+        .modal-header { cursor: move; }
+
+        /* Language Submenu */
+        .dropdown-submenu {
+            position: relative !important;
+            cursor: pointer;
+        }
+
+        .dropdown-submenu .submenu-panel {
+            display: none;
+            position: absolute !important;
+            top: 0;
+            right: 100%;
+            left: auto;
+            margin-right: 4px;
+            min-width: 140px;
+            background: #fff;
+            border: 1px solid #eef0f2;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 0.3rem;
+            z-index: 1050;
+        }
+
+        /* Desktop: hover */
+        @media (hover: hover) {
+            .dropdown-submenu:hover > .submenu-panel {
+                display: block !important;
+            }
+        }
+
+        /* Mobile: tap to toggle */
+        @media (hover: none) {
+            .dropdown-submenu .submenu-panel {
+                top: 100%;
+                right: 0;
+                left: auto;
+                margin-right: 0;
+                margin-top: 4px;
+            }
+            .dropdown-submenu.submenu-open > .submenu-panel {
+                display: block !important;
+            }
+        }
+
+        .dropdown-submenu .submenu-panel .dropdown-item {
+            border-radius: 5px;
+            font-size: 0.82rem;
+            padding: 0.4rem 0.75rem;
+        }
+        #userDropdownMenu .dropdown-item.active,
+        .submenu-panel .dropdown-item.active {
+            background-color: var(--primary-green, #043523) !important;
+            color: #fff !important;
         }
         .hover-text { 
             color: var(--primary-green); 
@@ -703,9 +760,20 @@
                             </div>
                             <span class="hover-text fs-6 fw-semibold d-none d-sm-block">{{ \App\Helpers\TextHelper::limitWordsByChar(Auth::user()->name ?? '', 25) }}</span>
                         </div>
-                        <div class="dropdown-menu" id="userDropdownMenu">
-                            <a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i> {{  ucfirst(__('general.profile')) }}</a>
-                            <a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i> {{  ucfirst(__('general.settings')) }} </a>
+                       <div class="dropdown-menu" id="userDropdownMenu">
+                            <a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i> {{ ucfirst(__('general.profile')) }}</a>
+                            
+                            <div class="dropdown-item dropdown-submenu d-flex align-items-center justify-content-between">
+                                <span><i class="bi bi-translate me-2"></i> {{ ucfirst(__('general.language')) }}</span>
+                                <i class="bi bi-chevron-right ms-2" style="font-size:0.7rem;"></i>
+                                
+                                <div class="submenu-panel">
+                                    <a class="dropdown-item {{ App::getLocale() === 'id' ? 'active' : '' }}" href="{{ route('locale', 'id') }}">Indonesia</a>
+                                    <a class="dropdown-item {{ App::getLocale() === 'en' ? 'active' : '' }}" href="{{ route('locale', 'en') }}">English</a>
+                                </div>
+                            </div>
+
+                            <a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i> {{ ucfirst(__('general.settings')) }} </a>
                         </div>
                     </div>
 
@@ -741,6 +809,7 @@
 
     <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ asset('js/app1.js') }}?v={{ filemtime(public_path('js/app1.js')) }}"></script>
     <script>
         $(function() {
             // ==========================================
@@ -753,7 +822,8 @@
             var restoringSidebar = false;
 
             // Restore sidebar state on load (no animation)
-            if (savedSidebar === 'true') {
+            var isMobile = window.matchMedia('(max-width: 768px)').matches;
+            if (savedSidebar === 'true' && !isMobile) {
                 restoringSidebar = true;
                 $('#appSidebar').css('transition', 'none');
                 $('.layout-main-container').css('transition', 'none');
@@ -801,7 +871,7 @@
                 $('.app-wrapper').toggleClass('sidebar-open');
                 $(this).toggleClass('rotated');
                 var isOpen = $('#appSidebar').hasClass('collapsed') ? 'false' : 'true';
-                localStorage.setItem(LS_KEY_SIDEBAR, isOpen);
+                if (!isMobile) localStorage.setItem(LS_KEY_SIDEBAR, isOpen);
                 setTimeout(function() {
                     $.fn.dataTable.tables().forEach(function(table) {
                         var dt = $(table).DataTable();
@@ -809,7 +879,23 @@
                     });
                 }, 350);
             });
-            
+
+            // ==========================================
+            // MOBILE: LANGUAGE SUBMENU TAP TOGGLE
+            // ==========================================
+            if (isMobile) {
+                $(document).on('click', '.dropdown-submenu', function(e) {
+                    e.stopPropagation();
+                    var $el = $(this);
+                    var wasOpen = $el.hasClass('submenu-open');
+                    $('.dropdown-submenu.submenu-open').removeClass('submenu-open');
+                    if (!wasOpen) $el.addClass('submenu-open');
+                });
+                $(document).on('click', function() {
+                    $('.dropdown-submenu.submenu-open').removeClass('submenu-open');
+                });
+            }
+
             // ==========================================
             // LOGIKA DROPDOWN (USER & NOTIFIKASI)
             // ==========================================
@@ -868,7 +954,7 @@
             }
 
             setupCustomDropdown($userToggle, $userMenu, $bellMenu, 15);
-            setupCustomDropdown($bellToggle, $bellMenu, $userMenu, 15); 
+            setupCustomDropdown($bellToggle, $bellMenu, $userMenu, 15);
 
             $(document).on('click', function(e) {
                 if (!$(e.target).closest('#userProfileToggle, #userDropdownMenu').length) 

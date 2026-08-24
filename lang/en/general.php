@@ -56,6 +56,7 @@ return [
     'failed_to_save'        => 'failed to save',
     'failed_to_update'      => 'failed to update',
     'failed_to_delete'      => 'failed to delete',
+    'no_changes'            => 'no changes',
     'saving'                => 'saving...',
     'deleting'              => 'deleting...',
     'error_occurred'        => 'an error occurred',
@@ -77,5 +78,6 @@ return [
     'downloaded_on'         => 'Downloaded on',
     'downloaded_by'         => 'Downloaded by',
     'title'                 => 'Title',
+    'language'              => 'Language',
 
 ];

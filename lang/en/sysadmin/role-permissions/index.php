@@ -34,7 +34,7 @@ return [
     'filter_guard_all'              => 'All guards',
     'filter_has_permissions'        => 'Has Permissions',
     'filter_in_use'                 => 'In Use',
-    'filter_exists'                 => 'Exists',
+    'filter_exists'                 => 'Yes',
     'filter_yes'                    => 'Yes',
     'filter_no'                     => 'No',
 

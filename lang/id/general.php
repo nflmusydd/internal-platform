@@ -56,6 +56,7 @@ return [
     'failed_to_save'        => 'gagal menyimpan',
     'failed_to_update'      => 'gagal memperbarui',
     'failed_to_delete'      => 'gagal menghapus',
+    'no_changes'            => 'tidak ada perubahan',
     'saving'                => 'menyimpan...',
     'deleting'              => 'menghapus...',
     'error_occurred'        => 'terjadi kesalahan',
@@ -77,5 +78,6 @@ return [
     'downloaded_on'         => 'Diunduh pada',
     'downloaded_by'         => 'Diunduh oleh',
     'title'                 => 'Judul',
+    'language'              => 'Bahasa',
 
 ];

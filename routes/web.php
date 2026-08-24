@@ -30,6 +30,14 @@ Route::middleware('auth')->group(function () {
         return view('layouts.green_layout');
     });
 
+    // LOCALE
+    Route::get('/locale/{locale}', function (string $locale) {
+        if (in_array($locale, ['en', 'id'])) {
+            session(['locale' => $locale]);
+        }
+        return redirect()->back();
+    })->name('locale');
+
     // ===============
     //    SYSADMIN
     // ===============

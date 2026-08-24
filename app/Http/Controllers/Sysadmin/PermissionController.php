@@ -59,6 +59,14 @@ class PermissionController extends Controller
             'guard_name' => 'required|string|max:20',
         ]);
 
+        if ($permission->name === $validated['name'] && $permission->guard_name === $validated['guard_name']) {
+            return response()->json([
+                'success' => true,
+                'message' => ucfirst(__('general.no_changes')),
+                'no_change' => true,
+            ]);
+        }
+
         DB::beginTransaction();
         try {
             $permission->update([

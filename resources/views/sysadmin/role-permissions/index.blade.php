@@ -551,7 +551,7 @@ $(function() {
         Admin.ajax(url, method, $(this).serialize(), function(res) {
             Admin.toast(res.message, 'success');
             bootstrap.Modal.getInstance('#roleModal').hide();
-            if (rolesTable) rolesTable.ajax.reload(null, false);
+            if (!res.no_change && rolesTable) rolesTable.ajax.reload(null, false);
         }, function(xhr) {
             $('#btnRoleSubmit').prop('disabled', false).html(originalRoleSubmitHtml);
         });
@@ -625,8 +625,10 @@ $(function() {
         Admin.ajax(url, method, $(this).serialize(), function(res) {
             Admin.toast(res.message, 'success');
             bootstrap.Modal.getInstance('#permissionModal').hide();
-            if (permissionsTable) permissionsTable.ajax.reload(null, false);
-            if (rolesTable) rolesTable.ajax.reload(null, false);
+            if (!res.no_change) {
+                if (permissionsTable) permissionsTable.ajax.reload(null, false);
+                if (rolesTable) rolesTable.ajax.reload(null, false);
+            }
         }, function(xhr) {
             $('#btnPermSubmit').prop('disabled', false).html(originalPermSubmitHtml);
         });
@@ -695,7 +697,7 @@ $(function() {
         Admin.ajax(routes.syncPermissions.replace(':id', roleId), 'PUT', { permissions: perms }, function(res) {
             Admin.toast(res.message, 'success');
             bootstrap.Modal.getInstance('#assignPermModal').hide();
-            if (rolesTable) rolesTable.ajax.reload(null, false);
+            if (!res.no_change && rolesTable) rolesTable.ajax.reload(null, false);
         }, function() {
             $('#btnAssignPermSubmit').prop('disabled', false).html(originalAssignSubmitHtml);
         });

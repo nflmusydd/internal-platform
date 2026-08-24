@@ -63,6 +63,14 @@ class RolePermissionController extends Controller
             'guard_name' => 'required|string|max:20',
         ]);
 
+        if ($role->name === $validated['name'] && $role->guard_name === $validated['guard_name']) {
+            return response()->json([
+                'success' => true,
+                'message' => ucfirst(__('general.no_changes')),
+                'no_change' => true,
+            ]);
+        }
+
         DB::beginTransaction();
         try {
             $role->update([
@@ -132,6 +140,18 @@ class RolePermissionController extends Controller
 
         DB::beginTransaction();
         try {
+            $currentPermissions = $role->permissions->pluck('name')->sort()->values()->toArray();
+            $newPermissions = collect($validated['permissions'] ?? [])->sort()->values()->toArray();
+
+            if ($currentPermissions === $newPermissions) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => true,
+                    'message' => ucfirst(__('general.no_changes')),
+                    'no_change' => true,
+                ]);
+            }
+
             $role->syncPermissions($validated['permissions'] ?? []);
 
             app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
