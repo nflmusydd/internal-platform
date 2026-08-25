@@ -7,7 +7,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <nav aria-label="breadcrumb">
-                @include('components.admin.breadcrumb', ['group' => 'sysadmin', 'currentPage' => __('sysadmin/menus/index.menu_management')])
+                @include('components.admin.breadcrumb', ['group' => 'sysadmin', 'currentPage' => ' '])
             </nav>
             <h4 class="fw-bold text-primary-green mb-1" style="font-family:'Poppins',sans-serif;">
                 {{ __('sysadmin/menus/index.menu_management') }}

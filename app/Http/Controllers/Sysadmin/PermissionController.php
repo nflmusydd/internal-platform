@@ -26,8 +26,8 @@ class PermissionController extends Controller
         DB::beginTransaction();
         try {
             $permission = Permission::create([
-                'name' => $validated['name'],
-                'guard_name' => $validated['guard_name'],
+                'name' => trim($validated['name']),
+                'guard_name' => trim($validated['guard_name']),
                 'created_by' => auth()->id(),
                 'updated_by' => auth()->id(),
             ]);
@@ -70,8 +70,8 @@ class PermissionController extends Controller
         DB::beginTransaction();
         try {
             $permission->update([
-                'name' => $validated['name'],
-                'guard_name' => $validated['guard_name'],
+                'name' => trim($validated['name']),
+                'guard_name' => trim($validated['guard_name']),
                 'updated_by' => auth()->id(),
             ]);
 

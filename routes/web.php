@@ -50,6 +50,11 @@ Route::middleware('auth')->group(function () {
 
         // USER
         Route::prefix('users')->name('users.')->group(function(){
+            Route::get('/ajax/users', [UserController::class, 'getUsers'])->name('ajax.users');
+            Route::get('/ajax/export-users', [UserController::class, 'exportUsers'])->name('ajax.export_users');
+            Route::post('/ajax', [UserController::class, 'store'])->name('ajax.store');
+            Route::put('/ajax/{id}', [UserController::class, 'update'])->name('ajax.update');
+            Route::delete('/ajax/{id}', [UserController::class, 'destroy'])->name('ajax.destroy');
             Route::resource('/', UserController::class);
         });
 

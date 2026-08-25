@@ -200,6 +200,8 @@ return [
         'password'              => 'Password',
         'name'                  => 'Nama',
         'guard'                 => 'Guard',
+        'guard_name'            => 'Nama Guard',
+        'is_active'             => 'Status',
         'password_confirmation' => 'Konfirmasi Password',
     ],
 

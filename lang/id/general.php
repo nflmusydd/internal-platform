@@ -43,6 +43,8 @@ return [
     'permissions'           => 'hak akses',
     'role'                  => 'peran',
     'permission'            => 'hak akses',
+    'user'                  => 'pengguna',
+    'users'                 => 'pengguna',
     'no_data'               => 'tidak ada data',
     'confirm_delete'        => 'apakah kamu yakin ingin menghapus data ini?',
     'confirm_delete_with'   => 'apakah kamu yakin ingin menghapus <strong>:name</strong>?',
@@ -79,5 +81,7 @@ return [
     'downloaded_by'         => 'Diunduh oleh',
     'title'                 => 'Judul',
     'language'              => 'Bahasa',
+    'management'            => 'Manajemen',
+    'email'                 => 'Email',
 
 ];

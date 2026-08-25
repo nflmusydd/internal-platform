@@ -32,8 +32,8 @@ class RolePermissionController extends Controller
         DB::beginTransaction();
         try {
             $role = Role::create([
-                'name' => $validated['name'],
-                'guard_name' => $validated['guard_name'],
+                'name' => trim($validated['name']),
+                'guard_name' => trim($validated['guard_name']),
                 'created_by' => auth()->id(),
                 'updated_by' => auth()->id(),
             ]);
@@ -74,8 +74,8 @@ class RolePermissionController extends Controller
         DB::beginTransaction();
         try {
             $role->update([
-                'name' => $validated['name'],
-                'guard_name' => $validated['guard_name'],
+                'name' => trim($validated['name']),
+                'guard_name' => trim($validated['guard_name']),
                 'updated_by' => auth()->id(),
             ]);
 

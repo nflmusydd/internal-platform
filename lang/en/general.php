@@ -43,6 +43,8 @@ return [
     'permissions'           => 'permissions',
     'role'                  => 'role',
     'permission'            => 'permission',
+    'user'                  => 'user',
+    'users'                 => 'users',
     'no_data'               => 'no data',
     'confirm_delete'        => 'are you sure you want to delete this?',
     'confirm_delete_with'   => 'are you sure you want to delete <strong>:name</strong>?',
@@ -79,5 +81,7 @@ return [
     'downloaded_by'         => 'Downloaded by',
     'title'                 => 'Title',
     'language'              => 'Language',
+    'management'            => 'Management',
+    'email'                 => 'Email',
 
 ];

@@ -81,7 +81,7 @@
                         'key' => 'hasPermissions', 
                         'type' => 'select', 
                         'label' => __('sysadmin/role-permissions/index.filter_label_has_permissions'),
-                        'placeholder' => ucfirst(__('sysadmin/role-permissions/index.filter_exists')) . ' ' . __('general.and') . ' ' . ucfirst(__('sysadmin/role-permissions/index.filter_no')), 
+                        'placeholder' => ucfirst(__('general.yes')) . ' ' . __('general.and') . ' ' . ucfirst(__('general.no')), 
                         'options' => [
                             '1' => __('sysadmin/role-permissions/index.filter_exists'),
                             '0' => __('sysadmin/role-permissions/index.filter_no'),
@@ -91,7 +91,7 @@
                         'key' => 'hasUsers', 
                         'type' => 'select', 
                         'label' => ucfirst(__('general.used')),
-                        'placeholder' => ucfirst(__('sysadmin/role-permissions/index.filter_exists')) . ' ' . __('general.and') . ' ' . ucfirst(__('sysadmin/role-permissions/index.filter_no')), 
+                        'placeholder' => ucfirst(__('general.yes')) . ' ' . __('general.and') . ' ' . ucfirst(__('general.no')), 
                         'options' => [
                             '1' => __('sysadmin/role-permissions/index.filter_exists'),
                             '0' => __('sysadmin/role-permissions/index.filter_no'),
@@ -143,6 +143,7 @@
             </div>
             @include('components.admin.search-filter', [
                 'id' => 'permissions',
+                'maxCols' => 3,
                 'filters' => [
                     [
                         'key' => 'name', 
@@ -526,8 +527,11 @@ $(function() {
         $name.removeClass('is-invalid'); $guard.removeClass('is-invalid');
         $('#roleNameError, #roleGuardError').text('');
 
+        $name.val($name.val().trim());
+        $guard.val($guard.val().trim());
+
         var valid = true;
-        if (!$name.val().trim()) {
+        if (!$name.val()) {
             $name.addClass('is-invalid');
             $('#roleNameError').text(lang.validationRequired.replace(':attribute', lang.attrName));
             valid = false;
@@ -600,8 +604,11 @@ $(function() {
         $name.removeClass('is-invalid'); $guard.removeClass('is-invalid');
         $('#permissionNameError, #permissionGuardError').text('');
 
+        $name.val($name.val().trim());
+        $guard.val($guard.val().trim());
+
         var valid = true;
-        if (!$name.val().trim()) {
+        if (!$name.val()) {
             $name.addClass('is-invalid');
             $('#permissionNameError').text(lang.validationRequired.replace(':attribute', lang.attrName));
             valid = false;

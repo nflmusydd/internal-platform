@@ -22,7 +22,7 @@ return [
     'login_subtitle' => 'Enter your credentials to continue',
     'password_label' => 'Password',
     'remember_me' => 'Remember me',
-    'placeholder_email' => 'ex: youremail@example.com',
+    'placeholder_email' => 'ex: youremail@internal.com',
     'placeholder_password' => 'password',
     'register' => 'Register',
     'register_title' => 'Create Account',

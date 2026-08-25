@@ -22,7 +22,7 @@ return [
     'login_subtitle' => 'Masukkan kredensial untuk melanjutkan',
     'password_label' => 'Password',
     'remember_me' => 'Ingat saya',
-    'placeholder_email' => 'cth: emailsaya@gmail.com',
+    'placeholder_email' => 'cth: emailsaya@internal.com',
     'placeholder_password' => 'password',
     'register' => 'Daftar',
     'register_title' => 'Buat Akun',

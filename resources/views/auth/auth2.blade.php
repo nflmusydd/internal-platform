@@ -399,7 +399,8 @@
                             <label for="registerPassword" class="form-label">{{ ucfirst(__('auth.password_label')) }}</label>
                             <input type="password" class="form-control"
                                    id="registerPassword" name="password"
-                                   placeholder="{{ __('auth.placeholder_password') }}">
+                                   placeholder="{{ __('auth.placeholder_password') }}"
+                                   minlength="8">
                             <div class="invalid-feedback" id="registerPasswordError"></div>
                         </div>
                         <div class="mb-3">
@@ -503,7 +504,9 @@
             $password.removeClass('is-invalid');
             $('#loginEmailError, #loginPasswordError').text('');
 
-            if (!$email.val().trim()) {
+            $email.val($email.val().trim());
+
+            if (!$email.val()) {
                 $email.addClass('is-invalid');
                 $('#loginEmailError').text('{{ __("validation.required", ["attribute" => __("validation.attributes.email")]) }}');
                 valid = false;
@@ -538,7 +541,10 @@
             $confirm.removeClass('is-invalid');
             $('#registerNameError, #registerEmailError, #registerPasswordError, #registerPasswordConfirmError').text('');
 
-            if (!$name.val().trim()) {
+            $name.val($name.val().trim());
+            $email.val($email.val().trim());
+
+            if (!$name.val()) {
                 $name.addClass('is-invalid');
                 $('#registerNameError').text('{{ __("validation.required", ["attribute" => __("validation.attributes.name")]) }}');
                 valid = false;
