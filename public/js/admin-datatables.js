@@ -15,7 +15,8 @@ var AdminDataTable = (function () {
             infoEmpty: window.dtLangDefaults?.infoEmpty || 'No entries available',
             infoFiltered: window.dtLangDefaults?.infoFiltered || '(filtered from _MAX_ total entries)',
             lengthMenu: window.dtLangDefaults?.lengthMenu || 'Show _MENU_ entries per page',
-            emptyTable: '<div class="text-muted py-3"><i class="bi bi-inbox fs-4 d-block mb-2"></i>No data available</div>',
+            emptyTable: window.dtLangDefaults?.emptyTable || '<div class="text-muted py-3"><i class="bi bi-inbox fs-4 d-block mb-2"></i>No data available</div>',
+            zeroRecords: window.dtLangDefaults?.zeroRecords || '<div class="text-muted py-3"><i class="bi bi-search fs-4 d-block mb-2"></i>No matching records found</div>',
             paginate: {
                 first: '<i class="bi bi-chevron-double-left"></i>',
                 last: '<i class="bi bi-chevron-double-right"></i>',
@@ -143,6 +144,15 @@ var AdminSearchFilter = (function () {
 
         $bar.find('input[type="text"]').val('');
         $bar.find('input[type="hidden"]').val('');
+
+        // Clear Flatpickr instances
+        $bar.find('.filter-date').each(function() {
+            if (this._flatpickr) {
+                this._flatpickr.clear();
+                this._flatpickr.set('minDate', null);
+                this._flatpickr.set('maxDate', null);
+            }
+        });
         
         // Reset dropdown buttons to their first option text
         $bar.find('.custom-filter-dropdown').each(function() {
@@ -196,3 +206,173 @@ var AdminSearchFilter = (function () {
         registerCustomSearch: registerCustomSearch
     };
 })();
+
+/* ==============================
+   Flatpickr Initialization
+   ============================== */
+$(function() {
+    if (typeof flatpickr === 'undefined') return;
+
+    var monthNames = window.adminTranslations.months || ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    var weekdaysShort = window.adminTranslations.weekdaysShort || ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+    flatpickr.localize(window.appLocale || 'id');
+    var fpInstances = flatpickr('.filter-date', {
+        dateFormat: 'd/m/Y',
+        // maxDate: 'today',
+        clickOpens: true,
+        disableMobile: true,
+        allowInput: false,
+        locale: window.appLocale || 'id',
+        onReady: function(sel, dateStr, fp) {
+            buildMonthDropdown(fp);
+        },
+        onClose: function(sel, dateStr, fp) {
+            if (fp._fpMonthDropdown) {
+                fp._fpMonthDropdown.menu.hide();
+                fp._fpMonthDropdown.wrapper.removeClass('open');
+            }
+        },
+        onMonthChange: function(sel, dateStr, fp) {
+            syncMonthDropdown(fp);
+        },
+        onYearChange: function(sel, dateStr, fp) {
+            syncMonthDropdown(fp);
+        },
+        onChange: function(sel, dateStr, fp) {
+            syncMonthDropdown(fp);
+            $(fp.input).trigger('change');
+            if (fp._updateDatePairLimits) fp._updateDatePairLimits();
+        }
+    });
+
+    if (fpInstances) {
+        var arr = Array.isArray(fpInstances) ? fpInstances : [fpInstances];
+        $.each(arr, function(_, fp) { setupDatePair(fp); });
+    }
+
+    function buildMonthDropdown(fp) {
+        var $select = $(fp.calendarContainer).find('.flatpickr-monthDropdown-months');
+        if (!$select.length) return;
+
+        var idx = fp.currentMonth;
+
+        var $wrapper = $('<div class="fp-month-dropdown"></div>');
+        var $btn = $('<button type="button" class="fp-month-dropdown-btn">' +
+                     monthNames[idx] + ' <i class="bi bi-chevron-down fp-month-chevron"></i></button>');
+        var $menu = $('<div class="fp-month-dropdown-menu"></div>');
+
+        $.each(monthNames, function(i, name) {
+            var cls = 'fp-month-dropdown-item' + (i === idx ? ' active' : '');
+            $menu.append('<a class="' + cls + '" href="javascript:void(0)" data-month="' + i + '">' + name + '</a>');
+        });
+
+        $menu.appendTo('body');
+
+        function positionMenu() {
+            var rect = $btn[0].getBoundingClientRect();
+            $menu.css({
+                position: 'fixed',
+                top: rect.bottom + 4,
+                left: rect.left
+            });
+        }
+
+        function openMenu() {
+            positionMenu();
+            $menu.show();
+            $wrapper.addClass('open');
+        }
+
+        function closeMenu() {
+            $menu.hide();
+            $wrapper.removeClass('open');
+        }
+
+        $btn.on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if ($wrapper.hasClass('open')) {
+                closeMenu();
+            } else {
+                openMenu();
+            }
+        });
+
+        $menu.on('click mousedown', function(e) {
+            e.stopPropagation();
+        });
+
+        $menu.on('click', '.fp-month-dropdown-item', function(e) {
+            e.preventDefault();
+            var targetMonth = $(this).data('month');
+            fp.changeMonth(targetMonth, false);
+            closeMenu();
+        });
+
+        $(fp.calendarContainer).on('mousedown', function() {
+            closeMenu();
+        });
+
+        $wrapper.append($btn);
+        $wrapper.insertBefore($select);
+        $select.hide();
+
+        fp._fpMonthDropdown = { wrapper: $wrapper, btn: $btn, menu: $menu };
+    }
+
+    function syncMonthDropdown(fp) {
+        if (!fp._fpMonthDropdown) return;
+        var m = fp._fpMonthDropdown;
+        var idx = fp.currentMonth;
+        m.btn.html(monthNames[idx] + ' <i class="bi bi-chevron-down fp-month-chevron"></i>');
+        m.menu.find('.fp-month-dropdown-item').removeClass('active')
+            .eq(idx).addClass('active');
+        m.menu.hide();
+        m.wrapper.removeClass('open');
+    }
+
+    function parseFilterDate(val) {
+        if (!val) return null;
+        var parts = val.split('/');
+        if (parts.length !== 3) return null;
+        return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+    }
+
+    function setupDatePair(fp) {
+        var key = fp.input.dataset.filter;
+        if (!key) return;
+
+        var pairKey = null;
+        if (key.endsWith('_from')) {        // pakai .indexOf('_from') jika key _from tidak harus di akhir
+            pairKey = key.replace(/_from$/, '_to'); 
+        } else if (key.endsWith('_to')) {
+            pairKey = key.replace(/_to$/, '_from');
+        }
+        if (!pairKey) return;
+
+        var $pairedInput = $('.filter-date[data-filter="' + pairKey + '"]');
+        if (!$pairedInput.length) return;
+        var pairedFp = $pairedInput[0]._flatpickr;
+        if (!pairedFp) return;
+
+        function updatePairLimits() {
+            var val = fp.input.value;
+            var date = parseFilterDate(val);
+
+            if (key.indexOf('_from') !== -1) {
+                pairedFp.set('minDate', date || null);
+                if (date && pairedFp.selectedDates[0] && pairedFp.selectedDates[0] < date) {
+                    pairedFp.clear();
+                }
+            } else {
+                pairedFp.set('maxDate', date || null);
+                if (date && pairedFp.selectedDates[0] && pairedFp.selectedDates[0] > date) {
+                    pairedFp.clear();
+                }
+            }
+        }
+
+        fp._updateDatePairLimits = updatePairLimits;
+    }
+});

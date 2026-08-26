@@ -15,7 +15,7 @@
     }
 @endphp
 
-<div id="filterBar-{{ $id }}" class="filter-bar mb-3" style="--filter-cols: {{ $maxCols }};display:none;">
+<div id="filterBar-{{ $id }}" class="filter-bar mb-3" style="--filter-cols: {{ $maxCols }}; --filter-rows: {{ count($rows) }};display:none;">
     @foreach($rows as $rowFilters)
         <div class="filter-row">
             @foreach($rowFilters as $filter)
@@ -43,7 +43,7 @@
                     @elseif(($filter['type'] ?? 'text') === 'date')
                         <div class="filter-input-wrap">
                             <i class="bi bi-calendar3 filter-input-icon"></i>
-                            <input type="date" class="filter-input" data-filter="{{ $filter['key'] }}">
+                            <input type="text" class="filter-input filter-date" data-filter="{{ $filter['key'] }}" readonly placeholder="dd/mm/yyyy">
                         </div>
                     @else
                         <div class="filter-input-wrap">

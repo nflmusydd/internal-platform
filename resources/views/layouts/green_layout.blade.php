@@ -8,6 +8,8 @@
     <link rel="icon" type="image/png" href="{{ asset('images/mnm_logo.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
     
     {{-- Internal Platform font --}}
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -686,6 +688,144 @@
         .table-responsive table th {
             white-space: nowrap;
         }
+
+        /* Flatpickr Green Theme Override */
+        .flatpickr-calendar {
+            background: #fff;
+            border-radius: 10px !important;
+            border: 1px solid #eef0f2;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            font-family: 'Poppins', sans-serif;
+        }
+        .flatpickr-months {
+            background: #043523;
+            border-radius: 10px 10px 0 0;
+        }
+        .flatpickr-months {
+            overflow: hidden !important;
+        }
+        .flatpickr-month {
+            overflow: visible !important;
+        }
+        .flatpickr-months .flatpickr-month {
+            background-color: #043523;
+            color: #fff;
+            border-radius: 0;
+        }
+        .flatpickr-current-month {
+            background: #043523;
+            color: #fff;
+            overflow: visible !important;
+        }
+        .flatpickr-current-month input.cur-year {
+            color: #fff;
+            font-weight: 700;
+        }
+        .flatpickr-monthDropdown-months {
+            display: none !important;
+        }
+        .fp-month-dropdown {
+            display: inline-block;
+            position: relative;
+        }
+        .fp-month-dropdown-btn {
+            background: transparent;
+            color: #fff;
+            border: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 2px 10px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .fp-month-dropdown-btn:hover {
+            background: rgba(255,255,255,0.15);
+        }
+        .fp-month-chevron {
+            font-size: 0.75rem;
+            transition: transform 0.2s;
+        }
+        .fp-month-dropdown.open .fp-month-chevron {
+            transform: rotate(180deg);
+        }
+        .fp-month-dropdown-menu {
+            display: none;
+            position: fixed;
+            margin-top: 0;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 99999;
+            min-width: 160px;
+            max-height: 240px;
+            overflow-y: auto;
+            padding: 4px;
+        }
+        .fp-month-dropdown.open .fp-month-dropdown-menu {
+            display: block;
+        }
+        .fp-month-dropdown-item {
+            display: block;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            color: #212529;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .fp-month-dropdown-item:hover {
+            background: #e8f5e9;
+            color: #043523;
+        }
+        .fp-month-dropdown-item.active {
+            background: #043523;
+            color: #fff;
+            font-weight: 600;
+        }
+        span.flatpickr-weekday {
+            color: #043523;
+            background: #fff;
+            font-weight: 700;
+        }
+        .flatpickr-days {
+            background: #fff;
+            border: none;
+            border-radius: 0 0 10px 10px;
+        }
+        .flatpickr-day {
+            background: #fff;
+            color: #212529;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            border-color: transparent;
+        }
+        .flatpickr-day.selected,
+        .flatpickr-day.selected:hover,
+        .flatpickr-day.selected:focus {
+            background: #043523;
+            border-color: #043523;
+        }
+        .flatpickr-day:hover {
+            background: #e8f5e9;
+            border-color: #043523;
+            color: #043523;
+        }
+        .flatpickr-day.today {
+            border-color: #043523;
+            color: #043523;
+        }
+        .flatpickr-day.today.selected {
+            background: #043523;
+            color: #fff;
+        }
+        .flatpickr-months .flatpickr-prev-month:hover svg,
+        .flatpickr-months .flatpickr-next-month:hover svg {
+            fill: #e8f5e9;
+        }
     </style>
     {{-- @yield('content_headscript') --}}
     @stack('styles')
@@ -862,6 +1002,8 @@
 
     <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
     <script src="{{ asset('js/app1.js') }}?v={{ filemtime(public_path('js/app1.js')) }}"></script>
     <script>
         $(function() {
@@ -1098,10 +1240,13 @@
 
     {{-- @yield('content_tailscript') --}}
     <script>
+        window.appLocale = @json(app()->getLocale());
         window.adminTranslations = {
             errorOccurred: @json(__('general.error_occurred')),
             saving: @json(__('general.saving')),
             deleting: @json(__('general.deleting')),
+            months: @json(__('general.months')),
+            weekdaysShort: @json(__('general.weekdays_short')),
         };
     </script>
     @stack('scripts')

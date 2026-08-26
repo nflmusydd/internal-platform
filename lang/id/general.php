@@ -71,6 +71,8 @@ return [
     'dt_info_empty'         => 'Tidak ada data tersedia',
     'dt_info_filtered'      => '(disaring dari _MAX_ total data)',
     'dt_length_menu'        => '_MENU_ per halaman',
+    'dt_zero_records'       => '<div class="text-muted py-3"><i class="bi bi-search fs-4 d-block mb-2"></i>Tidak ditemukan data yang cocok</div>',
+    'dt_empty_table'        => '<div class="text-muted py-3"><i class="bi bi-inbox fs-4 d-block mb-2"></i>Tidak ada data</div>',
 
     'download'              => 'unduh',
     'upload'                => 'unggah',
@@ -83,5 +85,8 @@ return [
     'language'              => 'Bahasa',
     'management'            => 'Manajemen',
     'email'                 => 'Email',
+
+    'months'                => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
+    'weekdays_short'        => ['Min','Sen','Sel','Rab','Kam','Jum','Sab'],
 
 ];

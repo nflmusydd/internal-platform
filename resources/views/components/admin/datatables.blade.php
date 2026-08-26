@@ -9,7 +9,9 @@
         info: @json(__('general.dt_info_showing')),
         infoEmpty: @json(__('general.dt_info_empty')),
         infoFiltered: @json(__('general.dt_info_filtered')),
-        lengthMenu: @json(__('general.dt_length_menu'))
+        lengthMenu: @json(__('general.dt_length_menu')),
+        zeroRecords: @json(__('general.dt_zero_records')),
+        emptyTable: @json(__('general.dt_empty_table'))
     };
 </script>
 <script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>

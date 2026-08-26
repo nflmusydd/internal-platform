@@ -71,6 +71,8 @@ return [
     'dt_info_empty'         => 'No entries available',
     'dt_info_filtered'      => '(filtered from _MAX_ total entries)',
     'dt_length_menu'        => '_MENU_ per page',
+    'dt_zero_records'       => '<div class="text-muted py-3"><i class="bi bi-search fs-4 d-block mb-2"></i>No matching records found</div>',
+    'dt_empty_table'        => '<div class="text-muted py-3"><i class="bi bi-inbox fs-4 d-block mb-2"></i>No data available</div>',
 
     'download'              => 'download',
     'upload'                => 'upload',
@@ -83,5 +85,8 @@ return [
     'language'              => 'Language',
     'management'            => 'Management',
     'email'                 => 'Email',
+
+    'months'                => ['January','February','March','April','May','June','July','August','September','October','November','December'],
+    'weekdays_short'        => ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
 
 ];

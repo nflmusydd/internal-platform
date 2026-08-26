@@ -72,7 +72,7 @@
                 'key' => 'created_at_from',
                 'type' => 'date',
                 'label' => __('sysadmin/users/index.filter_label_created_from'),
-                // 'newRow' => true,
+                'newRow' => true,
             ],
             [
                 'key' => 'created_at_to',
@@ -83,7 +83,7 @@
                 'key' => 'updated_at_from',
                 'type' => 'date',
                 'label' => __('sysadmin/users/index.filter_label_updated_from'),
-                // 'newRow' => true,
+                'newRow' => true,
             ],
             [
                 'key' => 'updated_at_to',
@@ -308,11 +308,23 @@ $(function() {
     initUsersTable();
 
     // ==================== EXPORT ====================
+    function toMySQLDate(val) {
+        if (!val) return '';
+        var parts = val.split('/');
+        return parts[2] + '-' + parts[1] + '-' + parts[0];
+    }
+
     window.exportData = function(format) {
         var state = window.filterState['users'] || {};
         var clean = {};
         $.each(state, function(k, v) {
-            if (v !== '' && v !== null && v !== undefined) clean[k] = v;
+            if (v !== '' && v !== null && v !== undefined) {
+                if (k.indexOf('_from') !== -1 || k.indexOf('_to') !== -1) {
+                    clean[k] = toMySQLDate(v);
+                } else {
+                    clean[k] = v;
+                }
+            }
         });
         var params = $.param(clean);
         window.location.href = routes.exportUsers + (params ? '?' + params : '');
@@ -329,7 +341,11 @@ $(function() {
 
     function dateFilterLogic(val, rowDate, operator) {
         if (!val || !rowDate) return true;
-        var filterDate = new Date(val + 'T00:00:00');
+        var parts = val.split('/');
+        var filterDate = new Date(parts[2], parts[1] - 1, parts[0]);
+        if (operator === 'to') {
+            filterDate.setHours(23, 59, 59, 999);
+        }
         var dataDate = new Date(rowDate);
         if (operator === 'from') return dataDate >= filterDate;
         if (operator === 'to') return dataDate <= filterDate;

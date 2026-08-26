@@ -75,7 +75,7 @@
 }
 .filter-reset-group {
     grid-column: 2;
-    grid-row: 1 / -1;
+    grid-row: 1 / span var(--filter-rows, 1);
     align-self: end;
     justify-self: end;
 }
@@ -133,6 +133,16 @@
     border-color: var(--primary-green, #043523);
     box-shadow: 0 0 0 0.15rem rgba(4, 53, 35, 0.1);
     outline: none;
+}
+
+/* Date Input (Flatpickr) */
+.filter-input.filter-date {
+    cursor: pointer;
+    background-color: #fff;
+}
+.filter-input.filter-date:focus {
+    border-color: var(--primary-green, #043523);
+    box-shadow: 0 0 0 0.15rem rgba(4, 53, 35, 0.1);
 }
 
 /* Custom Dropdown Filter */
