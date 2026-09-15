@@ -8,18 +8,15 @@
     <link rel="icon" type="image/png" href="{{ asset('images/mnm_logo.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
     
     {{-- Internal Platform font --}}
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     
-    {{-- DataTables custom styles --}}
-    <link rel="stylesheet" href="{{ asset('css/admin-datatables.css') }}?v={{ filemtime(public_path('css/admin-datatables.css')) }}">
-    <link rel="stylesheet" href="{{ asset('css/admin-toolbar.css') }}?v={{ filemtime(public_path('css/admin-toolbar.css')) }}">
+    {{-- Internal Platform base styles: modal form + buttons + draggable modal --}}
+    <link rel="stylesheet" href="{{ asset('css/iplat1_base.css') }}?v={{ filemtime(public_path('css/iplat1_base.css')) }}">
     
     <style>
-        /* Variabel Warna Utama Berdasarkan Palet */
+        /* Internal Platform Theme */
         :root {
             --primary-green: #043523;       /* Paling gelap: Teks utama & Ikon */
             --primary-green-hover: #0f513a; /* Medium teal: Untuk efek hover text */
@@ -179,7 +176,7 @@
             ========================================== */
         .sidebar nav, .app-main-content {
             flex: 1;
-            overflow-y: auto; /* scroll HANYA untuk list menu ini */
+            overflow-y: auto; /* scroll hanya untuk list menu ini */
             padding-bottom: 20px; 
             -ms-overflow-style: none; 
             scrollbar-gutter: stable; /* mencegah menu bergeser saat scrollbar aktif */
@@ -351,7 +348,7 @@
             transform: translateX(175px);    /* posisi tombol di sidebar */
             background-color: transparent;
             border-left-color: transparent; 
-            color: #ffffff !important; /* warna panah sidebar */
+            color: #ffffff !important;
         }
 
         .app-wrapper.sidebar-open .btn-sidebar-toggle.floating-toggle:hover {
@@ -359,7 +356,7 @@
         }
 
         /* ==========================================
-           KOMPONEN TOPBAR LAINNYA
+            TOPBAR COMPONENTS
            ========================================== */
         .search-container {
             background-color: white; 
@@ -389,7 +386,7 @@
             width: 100%;
             background: transparent; 
             font-size: 0.9rem; 
-            color: var(--primary-green);  /* Warna teks saat mengetik */
+            color: var(--primary-green);
         }
         .search-input::placeholder { 
             color: var(--primary-green-hover); 
@@ -483,62 +480,6 @@
         .dropdown-item:active {
             background-color: var(--primary-green) !important;
             color: white !important;
-        }
-
-        /* Draggable Modal */
-        .modal-header { cursor: move; }
-
-        /* Modal Form Elements */
-        .modal .form-select,
-        .modal .form-control {
-            border: 1px solid #dee2e6 !important;
-            border-radius: 6px !important;
-            font-size: 0.85rem !important;
-            height: 36px !important;
-            padding: 0.25rem 0.6rem !important;
-            background-color: #fff !important;
-            transition: border-color 0.15s ease, box-shadow 0.15s ease;
-        }
-        .modal .form-select {
-            --bs-form-select-bg-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23495057' viewBox='0 0 16 16'%3E%3Cpath d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E") !important;
-            background-image: var(--bs-form-select-bg-img) !important;
-            background-repeat: no-repeat !important;
-            background-position: right 0.5rem center !important;
-            background-size: 12px !important;
-            padding-right: 2rem !important;
-            cursor: pointer !important;
-            -webkit-appearance: none !important;
-            -moz-appearance: none !important;
-            appearance: none !important;
-        }
-        .modal .form-control[type="email"],
-        .modal .form-control[type="password"],
-        .modal .form-control[type="text"] {
-            padding-right: 0.6rem !important;
-        }
-        .modal .form-select:hover:not(:disabled),
-        .modal .form-control:hover:not(:disabled) {
-            border-color: #adb5bd !important;
-        }
-        .modal .form-select:focus,
-        .modal .form-control:focus {
-            border-color: #043523 !important;
-            box-shadow: 0 0 0 0.15rem rgba(4, 53, 35, 0.15) !important;
-            outline: none !important;
-        }
-        .modal .form-select:disabled,
-        .modal .form-control:disabled {
-            background-color: #f0f0f0 !important;
-            opacity: 0.65;
-            cursor: not-allowed !important;
-        }
-
-        /* Disabled Buttons */
-        .btn:disabled,
-        .btn.disabled {
-            opacity: 0.5;
-            cursor: not-allowed !important;
-            pointer-events: none;
         }
 
         /* Language Submenu */
@@ -688,144 +629,6 @@
         .table-responsive table th {
             white-space: nowrap;
         }
-
-        /* Flatpickr Green Theme Override */
-        .flatpickr-calendar {
-            background: #fff;
-            border-radius: 10px !important;
-            border: 1px solid #eef0f2;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-            font-family: 'Poppins', sans-serif;
-        }
-        .flatpickr-months {
-            background: #043523;
-            border-radius: 10px 10px 0 0;
-        }
-        .flatpickr-months {
-            overflow: hidden !important;
-        }
-        .flatpickr-month {
-            overflow: visible !important;
-        }
-        .flatpickr-months .flatpickr-month {
-            background-color: #043523;
-            color: #fff;
-            border-radius: 0;
-        }
-        .flatpickr-current-month {
-            background: #043523;
-            color: #fff;
-            overflow: visible !important;
-        }
-        .flatpickr-current-month input.cur-year {
-            color: #fff;
-            font-weight: 700;
-        }
-        .flatpickr-monthDropdown-months {
-            display: none !important;
-        }
-        .fp-month-dropdown {
-            display: inline-block;
-            position: relative;
-        }
-        .fp-month-dropdown-btn {
-            background: transparent;
-            color: #fff;
-            border: none;
-            font-weight: 600;
-            font-size: 1.1rem;
-            cursor: pointer;
-            padding: 2px 10px;
-            border-radius: 4px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .fp-month-dropdown-btn:hover {
-            background: rgba(255,255,255,0.15);
-        }
-        .fp-month-chevron {
-            font-size: 0.75rem;
-            transition: transform 0.2s;
-        }
-        .fp-month-dropdown.open .fp-month-chevron {
-            transform: rotate(180deg);
-        }
-        .fp-month-dropdown-menu {
-            display: none;
-            position: fixed;
-            margin-top: 0;
-            background: #fff;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 99999;
-            min-width: 160px;
-            max-height: 240px;
-            overflow-y: auto;
-            padding: 4px;
-        }
-        .fp-month-dropdown.open .fp-month-dropdown-menu {
-            display: block;
-        }
-        .fp-month-dropdown-item {
-            display: block;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 0.95rem;
-            color: #212529;
-            text-decoration: none;
-            white-space: nowrap;
-        }
-        .fp-month-dropdown-item:hover {
-            background: #e8f5e9;
-            color: #043523;
-        }
-        .fp-month-dropdown-item.active {
-            background: #043523;
-            color: #fff;
-            font-weight: 600;
-        }
-        span.flatpickr-weekday {
-            color: #043523;
-            background: #fff;
-            font-weight: 700;
-        }
-        .flatpickr-days {
-            background: #fff;
-            border: none;
-            border-radius: 0 0 10px 10px;
-        }
-        .flatpickr-day {
-            background: #fff;
-            color: #212529;
-            border-radius: 6px;
-            font-size: 0.82rem;
-            border-color: transparent;
-        }
-        .flatpickr-day.selected,
-        .flatpickr-day.selected:hover,
-        .flatpickr-day.selected:focus {
-            background: #043523;
-            border-color: #043523;
-        }
-        .flatpickr-day:hover {
-            background: #e8f5e9;
-            border-color: #043523;
-            color: #043523;
-        }
-        .flatpickr-day.today {
-            border-color: #043523;
-            color: #043523;
-        }
-        .flatpickr-day.today.selected {
-            background: #043523;
-            color: #fff;
-        }
-        .flatpickr-months .flatpickr-prev-month:hover svg,
-        .flatpickr-months .flatpickr-next-month:hover svg {
-            fill: #e8f5e9;
-        }
     </style>
     {{-- @yield('content_headscript') --}}
     @stack('styles')
@@ -910,7 +713,6 @@
                     <div id="topbarSpacer" class="header-spacer"></div>
 
                     <div class="d-flex align-items-center gap-2 gap-md-3">
-                        {{-- <img src="{{ asset('images/mnm_logo.png') }}" alt="Logo" style="height: 32px;"> --}}
                         @include('layouts.logo.mnm_logo')
                         <h3 class="mb-0 fw-bold text-primary-green logo-text d-none d-md-block text-nowrap" style="font-family: Arial, sans-serif; letter-spacing: 0.5px; vertical-align: middle; margin-right:12px">
                             {{ ucwords(__('general.internal_platform')) }}
@@ -988,9 +790,6 @@
             <section class="app-main-content" height="100%">
                 <div class="row" height="100%">
                 <div class="col-12" id="app-main-body" height="100%">
-                    <div id='flash-msg-container'>
-                    {{-- @include('flash::message') --}}
-                    </div>
                     @yield('app-main-content')
                 </div>
                 </div>
@@ -1002,9 +801,7 @@
 
     <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
-    <script src="{{ asset('js/app1.js') }}?v={{ filemtime(public_path('js/app1.js')) }}"></script>
+    <script src="{{ asset('js/iplat1_modal.js') }}?v={{ filemtime(public_path('js/iplat1_modal.js')) }}"></script>
     <script>
         $(function() {
             // ==========================================
@@ -1049,17 +846,19 @@
                         $('#topbarSpacer').css('transition', '');
                         restoringSidebar = false;
                         setTimeout(function() {
-                            $.fn.dataTable.tables().forEach(function(table) {
-                                var dt = $(table).DataTable();
-                                if (dt) dt.columns.adjust();
-                            });
+                            if (window.jQuery?.fn?.dataTable) {
+                                $.fn.dataTable.tables().forEach(function(table) {
+                                    var dt = $(table).DataTable();
+                                    if (dt) dt.columns.adjust();
+                                });
+                            }
                         }, 350);
                     });
                 });
             }
 
             // ==========================================
-            // LOGIKA SIDEBAR PUSH & ANIMATION
+            // SIDEBAR PUSH & ANIMATION
             // ==========================================
             $('#sidebarToggleBtn').on('click', function() {
                 $('#appSidebar').toggleClass('collapsed');
@@ -1068,10 +867,12 @@
                 var isOpen = $('#appSidebar').hasClass('collapsed') ? 'false' : 'true';
                 if (!isMobile) localStorage.setItem(LS_KEY_SIDEBAR, isOpen);
                 setTimeout(function() {
-                    $.fn.dataTable.tables().forEach(function(table) {
-                        var dt = $(table).DataTable();
-                        if (dt) dt.columns.adjust();
-                    });
+                    if (window.jQuery?.fn?.dataTable) {
+                        $.fn.dataTable.tables().forEach(function(table) {
+                            var dt = $(table).DataTable();
+                            if (dt) dt.columns.adjust();
+                        });
+                    }
                 }, 350);
             });
 
@@ -1092,7 +893,7 @@
             }
 
             // ==========================================
-            // LOGIKA DROPDOWN (USER & NOTIFIKASI)
+            // DROPDOWN (USER & NOTIFICATION)
             // ==========================================
             let layoutCursorX = 0;
 
@@ -1159,7 +960,7 @@
             });
 
             // ==========================================
-            // LOGIKA AJAX SEARCH
+            // AJAX SEARCH
             // ==========================================
             $('#searchForm').on('click', function(e) {
                 if (!$(e.target).closest('#searchButton').length) 
@@ -1184,7 +985,7 @@
                         },
                         error: function(xhr, status, error) {
                             console.error("Pencarian gagal:", error);
-                            // Isikan dengan modal/toast
+                            // Isikan dgn modal/toast
                         },
                         complete: function() {
                             setTimeout(() => { 
@@ -1203,15 +1004,17 @@
                 $('.app-wrapper').removeClass('sidebar-open');
                 $('#sidebarToggleBtn').removeClass('rotated');
                 setTimeout(function() {
-                    $.fn.dataTable.tables().forEach(function(table) {
-                        var dt = $(table).DataTable();
-                        if (dt) dt.columns.adjust();
-                    });
+                    if (window.jQuery?.fn?.dataTable) {
+                        $.fn.dataTable.tables().forEach(function(table) {
+                            var dt = $(table).DataTable();
+                            if (dt) dt.columns.adjust();
+                        });
+                    }
                 }, 350);
             });
 
             // ==========================================
-            // LOGIKA SUB-MENU SIDEBAR
+            // SUB-MENU SIDEBAR
             // ========================================== 
             function saveSubmenuState() {
                 var open = [];
@@ -1239,16 +1042,6 @@
     </script>
 
     {{-- @yield('content_tailscript') --}}
-    <script>
-        window.appLocale = @json(app()->getLocale());
-        window.adminTranslations = {
-            errorOccurred: @json(__('general.error_occurred')),
-            saving: @json(__('general.saving')),
-            deleting: @json(__('general.deleting')),
-            months: @json(__('general.months')),
-            weekdaysShort: @json(__('general.weekdays_short')),
-        };
-    </script>
     @stack('scripts')
 </body>
 </html>

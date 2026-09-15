@@ -1,4 +1,4 @@
-var Admin = (function () {
+var Iplat = (function () {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || $('meta[name="csrf-token"]').attr('content');
 
     function ajaxRequest(url, method, data, onSuccess, onError) {
@@ -12,7 +12,7 @@ var Admin = (function () {
                 if (onSuccess) onSuccess(response);
             },
             error: function (xhr) {
-                var msg = (window.adminTranslations && window.adminTranslations.errorOccurred) || 'An error occurred';
+                var msg = (window.iplatTranslations && window.iplatTranslations.errorOccurred) || 'An error occurred';
                 if (xhr.responseJSON) {
                     msg = xhr.responseJSON.message || msg;
                     if (xhr.responseJSON.errors) {

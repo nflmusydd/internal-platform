@@ -1,5 +1,6 @@
-@extends('layouts.green_layout')
-@include('components.admin.datatables')
+@extends('layouts.iplat1_layout1')
+@include('components.iplat1.crud')
+@include('components.iplat1.datatables')
 
 @section('app-main-content')
 <div class="p-4 p-md-5">
@@ -8,7 +9,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <nav aria-label="breadcrumb">
-                @include('components.admin.breadcrumb', ['group' => 'sysadmin', 'currentPage' => ' '])
+                @include('components.iplat1.breadcrumb', ['group' => 'sysadmin', 'currentPage' => ' '])
             </nav>
             <h4 class="fw-bold text-primary-green mb-1" style="font-family:'Poppins',sans-serif;">
                 {{ ucfirst(__('general.user')) }}
@@ -43,7 +44,7 @@
         </button>
     </div>
 
-    @include('components.admin.search-filter', [
+    @include('components.iplat1.search-filter', [
         'id' => 'users',
         'filters' => [
             [
@@ -200,10 +201,9 @@
     </div>
 </div>
 
-@include('components.admin.confirm-delete')
+@include('components.iplat1.confirm-delete')
 
 @push('scripts')
-<script src="{{ asset('js/admin.js') }}?v={{ filemtime(public_path('js/admin.js')) }}"></script>
 <script>
 $(function() {
     var routes = {
@@ -257,7 +257,7 @@ $(function() {
 
     function initUsersTable() {
         if (usersTable) { usersTable.ajax.reload(null, false); return; }
-        usersTable = AdminDataTable.init('#usersTable', {
+        usersTable = IplatDataTable.init('#usersTable', {
             ajax: {
                 url: routes.users,
                 dataSrc: 'data',
@@ -296,7 +296,7 @@ $(function() {
             });
         });
         usersTable.settings()[0]._searchFilterId = 'users';
-        AdminSearchFilter.init('#usersTable', {
+        IplatFilter.init('#usersTable', {
             id: 'users',
             table: usersTable,
             columnMap: { name: 1, email: 2 },
@@ -308,7 +308,7 @@ $(function() {
     initUsersTable();
 
     // ==================== EXPORT ====================
-    function toMySQLDate(val) {
+    function toDatabaseDate(val) {
         if (!val) return '';
         var parts = val.split('/');
         return parts[2] + '-' + parts[1] + '-' + parts[0];
@@ -320,7 +320,7 @@ $(function() {
         $.each(state, function(k, v) {
             if (v !== '' && v !== null && v !== undefined) {
                 if (k.indexOf('_from') !== -1 || k.indexOf('_to') !== -1) {
-                    clean[k] = toMySQLDate(v);
+                    clean[k] = toDatabaseDate(v);
                 } else {
                     clean[k] = v;
                 }
@@ -331,7 +331,7 @@ $(function() {
     };
 
     // ==================== SEARCH FILTER ====================
-    AdminSearchFilter.registerCustomSearch('status', function (val, settings, data, dataIndex) {
+    IplatFilter.registerCustomSearch('status', function (val, settings, data, dataIndex) {
         var api = new $.fn.dataTable.Api(settings);
         var rowData = api.row(dataIndex).data();
         if (val === '1') return rowData.is_active === 1 || rowData.is_active === '1';
@@ -352,25 +352,25 @@ $(function() {
         return true;
     }
 
-    AdminSearchFilter.registerCustomSearch('created_at_from', function (val, settings, data, dataIndex) {
+    IplatFilter.registerCustomSearch('created_at_from', function (val, settings, data, dataIndex) {
         var api = new $.fn.dataTable.Api(settings);
         var rowData = api.row(dataIndex).data();
         return dateFilterLogic(val, rowData.created_at, 'from');
     });
 
-    AdminSearchFilter.registerCustomSearch('created_at_to', function (val, settings, data, dataIndex) {
+    IplatFilter.registerCustomSearch('created_at_to', function (val, settings, data, dataIndex) {
         var api = new $.fn.dataTable.Api(settings);
         var rowData = api.row(dataIndex).data();
         return dateFilterLogic(val, rowData.created_at, 'to');
     });
 
-    AdminSearchFilter.registerCustomSearch('updated_at_from', function (val, settings, data, dataIndex) {
+    IplatFilter.registerCustomSearch('updated_at_from', function (val, settings, data, dataIndex) {
         var api = new $.fn.dataTable.Api(settings);
         var rowData = api.row(dataIndex).data();
         return dateFilterLogic(val, rowData.updated_at, 'from');
     });
 
-    AdminSearchFilter.registerCustomSearch('updated_at_to', function (val, settings, data, dataIndex) {
+    IplatFilter.registerCustomSearch('updated_at_to', function (val, settings, data, dataIndex) {
         var api = new $.fn.dataTable.Api(settings);
         var rowData = api.row(dataIndex).data();
         return dateFilterLogic(val, rowData.updated_at, 'to');
@@ -381,8 +381,8 @@ $(function() {
     $(document).on('click', '.search-filter-toggle', function () {
         var target = $(this).data('target');
         var id = target.replace('filterBar-', '');
-        AdminSearchFilter.toggle(target);
-        window.filterState[id] = AdminSearchFilter.getState(id);
+        IplatFilter.toggle(target);
+        window.filterState[id] = IplatFilter.getState(id);
     });
 
     // ==================== USERS ====================
@@ -395,7 +395,7 @@ $(function() {
     }
 
     window.openUserModal = function(ulid) {
-        Admin.resetModal('#userModal');
+        Iplat.resetModal('#userModal');
         $('#userId').val('');
         var isEdit = !!ulid;
 
@@ -514,9 +514,9 @@ $(function() {
             $data = $data.replace(/&password=[^&]*/g, '').replace(/&password_confirmation=[^&]*/g, '');
         }
 
-        $('#btnUserSubmit').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>' + window.adminTranslations.saving);
-        Admin.ajax(url, method, $data, function(res) {
-            Admin.toast(res.message, 'success');
+        $('#btnUserSubmit').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>' + window.iplatTranslations.saving);
+        Iplat.ajax(url, method, $data, function(res) {
+            Iplat.toast(res.message, 'success');
             bootstrap.Modal.getInstance('#userModal').hide();
             if (!res.no_change && usersTable) usersTable.ajax.reload(null, false);
         }, function(xhr) {
@@ -528,7 +528,7 @@ $(function() {
         var row = usersTable.row($('[onclick*="deleteUser(\'' + ulid + '\')"]').closest('tr'));
         var data = row.data();
         if (data.ulid === currentUserId) {
-            Admin.toast(lang.cannot_delete_self, 'warning');
+            Iplat.toast(lang.cannot_delete_self, 'warning');
             return;
         }
         $('#confirmUserDeleteModal').data('user-ulid', ulid).data('user-name', data.name);
@@ -546,7 +546,7 @@ $(function() {
         var name = $('#confirmUserDeleteModal').data('user-name');
         bootstrap.Modal.getInstance('#confirmUserDeleteModal').hide();
         var msg = lang.confirmDeleteWith.replace(':name', name);
-        Admin.confirmDelete(routes.deleteUser.replace(':id', ulid), function() {
+        Iplat.confirmDelete(routes.deleteUser.replace(':id', ulid), function() {
             if (usersTable) usersTable.ajax.reload(null, false);
         }, msg);
     });
@@ -557,9 +557,9 @@ $(function() {
         var $modal = $('#confirmDeleteModal');
         var url = $modal.data('delete-url');
         var callback = $modal.data('on-success');
-        $('#btnConfirmDelete').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>' + window.adminTranslations.deleting);
-        Admin.ajax(url, 'DELETE', {}, function(res) {
-            Admin.toast(res.message, 'success');
+        $('#btnConfirmDelete').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>' + window.iplatTranslations.deleting);
+        Iplat.ajax(url, 'DELETE', {}, function(res) {
+            Iplat.toast(res.message, 'success');
             bootstrap.Modal.getInstance('#confirmDeleteModal').hide();
             if (callback) callback();
         }, function() {

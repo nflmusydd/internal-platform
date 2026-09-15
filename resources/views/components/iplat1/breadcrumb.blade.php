@@ -43,7 +43,6 @@
         </li>
     @endif
     @if($currentPage)
-    {{-- <li class="breadcrumb-item active" aria-current="page">{{ $currentPage }}</li> --}}
         <li class="breadcrumb-item" aria-current="page">{{ $currentPage }}</li>
     @endif
 </ol>

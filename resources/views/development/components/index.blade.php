@@ -1,4 +1,4 @@
-@extends('layouts.green_layout')
+@extends('layouts.iplat1_layout1')
 
 @section('app-main-content')
 

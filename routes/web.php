@@ -27,7 +27,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 Route::middleware('auth')->group(function () {
 
     Route::get('/', function () {
-        return view('layouts.green_layout');
+        return view('layouts.iplat1_layout1');
     });
 
     // LOCALE

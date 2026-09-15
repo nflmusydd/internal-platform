@@ -24,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
         // ==========================
         //  LOAD MENU DI SIDEBAR 
         // ==========================
-        View::composer('layouts.green_layout', function ($view) {
+        View::composer('layouts.iplat1_layout1', function ($view) {
             $user = auth()->user();
             
             // Ambil menu aktif dengan anak-anaknya

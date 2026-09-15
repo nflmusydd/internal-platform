@@ -1,5 +1,6 @@
-@extends('layouts.green_layout')
-@include('components.admin.datatables')
+@extends('layouts.iplat1_layout1')
+@include('components.iplat1.crud')
+@include('components.iplat1.datatables')
 
 @section('app-main-content')
 <div class="p-4 p-md-5">
@@ -8,7 +9,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <nav aria-label="breadcrumb">
-                @include('components.admin.breadcrumb', ['group' => 'sysadmin', 'currentPage' => ' '])
+                @include('components.iplat1.breadcrumb', ['group' => 'sysadmin', 'currentPage' => ' '])
             </nav>
             <h4 class="fw-bold text-primary-green mb-1" style="font-family:'Poppins',sans-serif;">
                 {{ ucfirst(__('general.role')) }} & {{ ucfirst(__('general.permissions')) }}
@@ -61,7 +62,7 @@
                     <i class="bi bi-plus-lg me-1"></i>{{ ucfirst(__('general.add')) }} {{ ucfirst(__('general.role')) }}
                 </button>
             </div>
-            @include('components.admin.search-filter', [
+            @include('components.iplat1.search-filter', [
                 'id' => 'roles',
                 'filters' => [
                     [
@@ -141,7 +142,7 @@
                     <i class="bi bi-plus-lg me-1"></i>{{ ucfirst(__('general.add')) }} {{ ucwords(__('general.permission')) }}
                 </button>
             </div>
-            @include('components.admin.search-filter', [
+            @include('components.iplat1.search-filter', [
                 'id' => 'permissions',
                 'maxCols' => 3,
                 'filters' => [
@@ -284,10 +285,9 @@
     </div>
 </div>
 
-@include('components.admin.confirm-delete')
+@include('components.iplat1.confirm-delete')
 
 @push('scripts')
-<script src="{{ asset('js/admin.js') }}?v={{ filemtime(public_path('js/admin.js')) }}"></script>
 <script>
 $(function() {
     var routes = {
@@ -337,13 +337,13 @@ $(function() {
 
     function initRolesTable() {
         if (rolesTable) { rolesTable.ajax.reload(null, false); return; }
-        rolesTable = AdminDataTable.init('#rolesTable', {
+        rolesTable = IplatDataTable.init('#rolesTable', {
             ajax: {
                 url: routes.roles,
                 dataSrc: 'data',
                 complete: function () {
                     var guards = rolesTable.column(2).data().unique().sort().toArray();
-                    AdminSearchFilter.populateSelect('filterBar-roles', 'guard', guards);
+                    IplatFilter.populateSelect('filterBar-roles', 'guard', guards);
                 }
             },
             language: {
@@ -382,7 +382,7 @@ $(function() {
             });
         });
         rolesTable.settings()[0]._searchFilterId = 'roles';
-        AdminSearchFilter.init('#rolesTable', {
+        IplatFilter.init('#rolesTable', {
             id: 'roles',
             table: rolesTable,
             columnMap: { name: 1, guard: 2 },
@@ -393,13 +393,13 @@ $(function() {
 
     function initPermissionsTable() {
         if (permissionsTable) { permissionsTable.ajax.reload(null, false); return; }
-        permissionsTable = AdminDataTable.init('#permissionsTable', {
+        permissionsTable = IplatDataTable.init('#permissionsTable', {
             ajax: {
                 url: routes.permissions,
                 dataSrc: 'data',
                 complete: function () {
                     var guards = permissionsTable.column(2).data().unique().sort().toArray();
-                    AdminSearchFilter.populateSelect('filterBar-permissions', 'guard', guards);
+                    IplatFilter.populateSelect('filterBar-permissions', 'guard', guards);
                 }
             },
             language: {
@@ -431,7 +431,7 @@ $(function() {
             });
         });
         permissionsTable.settings()[0]._searchFilterId = 'permissions';
-        AdminSearchFilter.init('#permissionsTable', {
+        IplatFilter.init('#permissionsTable', {
             id: 'permissions',
             table: permissionsTable,
             columnMap: { name: 1, guard: 2 },
@@ -456,7 +456,7 @@ $(function() {
     };
 
     // ==================== SEARCH FILTER ====================
-    AdminSearchFilter.registerCustomSearch('hasPermissions', function (val, settings, data, dataIndex) {
+    IplatFilter.registerCustomSearch('hasPermissions', function (val, settings, data, dataIndex) {
         var api = new $.fn.dataTable.Api(settings);
         var rowData = api.row(dataIndex).data();
         if (val === '1') return rowData.permissions_count > 0;
@@ -464,7 +464,7 @@ $(function() {
         return true;
     });
 
-    AdminSearchFilter.registerCustomSearch('hasUsers', function (val, settings, data, dataIndex) {
+    IplatFilter.registerCustomSearch('hasUsers', function (val, settings, data, dataIndex) {
         var api = new $.fn.dataTable.Api(settings);
         var rowData = api.row(dataIndex).data();
         if (val === '1') return rowData.users_count > 0;
@@ -472,7 +472,7 @@ $(function() {
         return true;
     });
 
-    AdminSearchFilter.registerCustomSearch('inUse', function (val, settings, data, dataIndex) {
+    IplatFilter.registerCustomSearch('inUse', function (val, settings, data, dataIndex) {
         var api = new $.fn.dataTable.Api(settings);
         var rowData = api.row(dataIndex).data();
         if (val === '1') return rowData.roles_count > 0;
@@ -485,8 +485,8 @@ $(function() {
     $(document).on('click', '.search-filter-toggle', function () {
         var target = $(this).data('target');
         var id = target.replace('filterBar-', '');
-        AdminSearchFilter.toggle(target);
-        window.filterState[id] = AdminSearchFilter.getState(id);
+        IplatFilter.toggle(target);
+        window.filterState[id] = IplatFilter.getState(id);
     });
 
     // Tab switch manual
@@ -504,7 +504,7 @@ $(function() {
 
     // ==================== ROLES ====================
     window.openRoleModal = function(id, name, guard) {
-        Admin.resetModal('#roleModal');
+        Iplat.resetModal('#roleModal');
         $('#roleId').val('');
         $('#roleModalTitle').html('<i class="bi bi-shield-lock me-2"></i>' + (id ? lang.editRole : lang.addRole));
         if (id) {
@@ -551,9 +551,9 @@ $(function() {
         }
         if (!valid) return;
 
-        $('#btnRoleSubmit').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>' + window.adminTranslations.saving);
-        Admin.ajax(url, method, $(this).serialize(), function(res) {
-            Admin.toast(res.message, 'success');
+        $('#btnRoleSubmit').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>' + window.iplatTranslations.saving);
+        Iplat.ajax(url, method, $(this).serialize(), function(res) {
+            Iplat.toast(res.message, 'success');
             bootstrap.Modal.getInstance('#roleModal').hide();
             if (!res.no_change && rolesTable) rolesTable.ajax.reload(null, false);
         }, function(xhr) {
@@ -566,14 +566,14 @@ $(function() {
         var data = row.data();
         if (data && data.users_count > 0) {
             var msg = lang.warningRoleInUse.replace(':name', data.name).replace(':count', data.users_count);
-            Admin.confirmWarning(
+            Iplat.confirmWarning(
                 msg,
                 routes.deleteRole.replace(':id', id),
                 function() { if (rolesTable) rolesTable.ajax.reload(null, false); }
             );
         } else {
             var msg = lang.confirmDeleteWith.replace(':name', data.name);
-            Admin.confirmDelete(routes.deleteRole.replace(':id', id), function() {
+            Iplat.confirmDelete(routes.deleteRole.replace(':id', id), function() {
                 if (rolesTable) rolesTable.ajax.reload(null, false);
             }, msg);
         }
@@ -581,7 +581,7 @@ $(function() {
 
     // ==================== PERMISSIONS ====================
     window.openPermissionModal = function(id, name, guard) {
-        Admin.resetModal('#permissionModal');
+        Iplat.resetModal('#permissionModal');
         $('#permissionId').val('');
         $('#permissionModalTitle').html('<i class="bi bi-key me-2"></i>' + (id ? lang.editPermission : lang.addPermission));
         if (id) {
@@ -628,9 +628,9 @@ $(function() {
         }
         if (!valid) return;
 
-        $('#btnPermSubmit').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>' + window.adminTranslations.saving);
-        Admin.ajax(url, method, $(this).serialize(), function(res) {
-            Admin.toast(res.message, 'success');
+        $('#btnPermSubmit').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>' + window.iplatTranslations.saving);
+        Iplat.ajax(url, method, $(this).serialize(), function(res) {
+            Iplat.toast(res.message, 'success');
             bootstrap.Modal.getInstance('#permissionModal').hide();
             if (!res.no_change) {
                 if (permissionsTable) permissionsTable.ajax.reload(null, false);
@@ -646,7 +646,7 @@ $(function() {
         var data = row.data();
         if (data && data.roles_count > 0) {
             var msg = lang.warningPermissionInUse.replace(':name', data.name).replace(':count', data.roles_count);
-            Admin.confirmWarning(
+            Iplat.confirmWarning(
                 msg,
                 routes.deletePermission.replace(':id', id),
                 function() {
@@ -656,7 +656,7 @@ $(function() {
             );
         } else {
             var msg = lang.confirmDeleteWith.replace(':name', data.name);
-            Admin.confirmDelete(routes.deletePermission.replace(':id', id), function() {
+            Iplat.confirmDelete(routes.deletePermission.replace(':id', id), function() {
                 if (permissionsTable) permissionsTable.ajax.reload(null, false);
                 if (rolesTable) rolesTable.ajax.reload(null, false);
             }, msg);
@@ -700,9 +700,9 @@ $(function() {
         var perms = [];
         $('.assign-perm-check:checked').each(function() { perms.push($(this).val()); });
 
-        $('#btnAssignPermSubmit').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>' + window.adminTranslations.saving);
-        Admin.ajax(routes.syncPermissions.replace(':id', roleId), 'PUT', { permissions: perms }, function(res) {
-            Admin.toast(res.message, 'success');
+        $('#btnAssignPermSubmit').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>' + window.iplatTranslations.saving);
+        Iplat.ajax(routes.syncPermissions.replace(':id', roleId), 'PUT', { permissions: perms }, function(res) {
+            Iplat.toast(res.message, 'success');
             bootstrap.Modal.getInstance('#assignPermModal').hide();
             if (!res.no_change && rolesTable) rolesTable.ajax.reload(null, false);
         }, function() {
@@ -716,9 +716,9 @@ $(function() {
         var $modal = $('#confirmDeleteModal');
         var url = $modal.data('delete-url');
         var callback = $modal.data('on-success');
-        $('#btnConfirmDelete').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>' + window.adminTranslations.deleting);
-        Admin.ajax(url, 'DELETE', {}, function(res) {
-            Admin.toast(res.message, 'success');
+        $('#btnConfirmDelete').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>' + window.iplatTranslations.deleting);
+        Iplat.ajax(url, 'DELETE', {}, function(res) {
+            Iplat.toast(res.message, 'success');
             bootstrap.Modal.getInstance('#confirmDeleteModal').hide();
             if (callback) callback();
         }, function() {
