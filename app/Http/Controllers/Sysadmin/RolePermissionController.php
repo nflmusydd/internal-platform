@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\Permission;
 use App\Exports\RolesExport;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -187,7 +188,21 @@ class RolePermissionController extends Controller
         return response()->json([
             'data' => [
                 'role' => $role->name,
-                'permissions' => $role->permissions->pluck('name'),
+                'permissions' => $role->permissions->sortBy('name')->pluck('name')->values(),
+            ],
+        ]);
+    }
+
+    public function getRoleUsers(string $id)
+    {
+        $role = Role::with('users')->where('ulid', $id)->firstOrFail();
+        $items = $role->users->sortBy('name')->values()->map(function ($user) {
+            return ['name' => $user->name, 'email' => $user->email];
+        });
+        return response()->json([
+            'data' => [
+                'role' => $role->name,
+                'items' => $items,
             ],
         ]);
     }
@@ -215,6 +230,12 @@ class RolePermissionController extends Controller
             } else {
                 $roles->doesntHave('users');
             }
+        }
+        if ($request->filled('created_at_from')) {
+            $roles->where('created_at', '>=', Carbon::createFromFormat('d/m/Y', $request->created_at_from)->startOfDay());
+        }
+        if ($request->filled('created_at_to')) {
+            $roles->where('created_at', '<=', Carbon::createFromFormat('d/m/Y', $request->created_at_to)->endOfDay());
         }
 
         $roles = $roles->orderBy('name')->get();

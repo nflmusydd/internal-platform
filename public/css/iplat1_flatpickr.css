@@ -140,3 +140,35 @@ span.flatpickr-weekday {
 .flatpickr-months .flatpickr-next-month:hover svg {
     fill: #e8f5e9;
 }
+
+/* Year spinner arrows - ikon chevron putih seperti pemilih bulan, dengan border-radius hover */
+.flatpickr-current-month .numInputWrapper span {
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 4px;
+}
+.flatpickr-current-month .numInputWrapper span.arrowUp:after,
+.flatpickr-current-month .numInputWrapper span.arrowDown:after {
+    content: "";
+    width: 12px;
+    height: 12px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: none;
+    background-color: #fff;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+.flatpickr-current-month .numInputWrapper span.arrowUp:after {
+    transform: translate(-50%, -50%) rotate(180deg);
+}
+.flatpickr-current-month .numInputWrapper span.arrowUp:hover:after,
+.flatpickr-current-month .numInputWrapper span.arrowDown:hover:after {
+    background-color: #e8f5e9;
+}
+.flatpickr-current-month .numInputWrapper:hover,
+.flatpickr-current-month .numInputWrapper span:hover,
+.flatpickr-current-month .numInputWrapper span:active {
+    background: rgba(255,255,255,0.15);
+    border-radius: 4px;
+}

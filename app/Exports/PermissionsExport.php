@@ -15,6 +15,7 @@ class PermissionsExport extends BaseExport
             ucwords(__('general.name')),
             ucwords(__('general.guard')),
             ucwords(__('general.used_by')),
+            ucwords(__('sysadmin/role-permissions/index.created_at')),
         ];
 
         $rows = $permissions->map(function ($perm, $index) {
@@ -23,6 +24,7 @@ class PermissionsExport extends BaseExport
                 $perm->name,
                 $perm->guard_name,
                 $perm->roles_count,
+                $perm->created_at ? $perm->created_at->format('d/m/Y H:i') : '-',
             ];
         })->toArray();
 

@@ -24,6 +24,7 @@ Semua aset lain di-push ke `@stack('styles')` / `@stack('scripts')` melalui komp
 | Breadcrumb dinamis (dari tabel `menus`) | `components.iplat1.breadcrumb` | param `group` (slug menu parent) & `currentPage` |
 | Filter bar | `components.iplat1.search-filter` | grid input filter `text` / `select` / `date` |
 | Modal konfirmasi hapus & warning | `components.iplat1.confirm-delete` | `#confirmDeleteModal`, `#confirmWarningModal` |
+| Modal badge list lazy | `components.iplat1.badge-list` | `#badgeListModal`, `Iplat.showBadgeList` |
 | Empty state | `components.iplat1.empty-state` | baris `<tr>` kosong untuk tabel |
 | Container toast statis (opsional) | `components.iplat1.toast` | `<div id="toast-container">` |
 
@@ -39,7 +40,7 @@ Semua aset lain di-push ke `@stack('styles')` / `@stack('scripts')` melalui komp
 | `public/js/iplat1_filter.js` | `IplatFilter` (toggle, init, state, populate, custom search) |
 | `public/js/iplat1_flatpickr.js` | Auto-init flatpickr untuk `.filter-date` |
 | `public/js/iplat1_modal.js` | Draggable modal (base, dimuat layout) |
-| `public/css/iplat1_base.css` | Modal form + disabled buttons + draggable cursor (dimuat layout) |
+| `public/css/iplat1_base.css` | Modal form + disabled buttons + checkbox bertema + draggable cursor (dimuat layout) |
 | `public/css/iplat1_datatable.css` | Styling DataTables |
 | `public/css/iplat1_filter.css` | Toolbar, filter bar, dropdown, tombol export |
 | `public/css/iplat1_flatpickr.css` | Theme hijau flatpickr + custom month dropdown |
@@ -237,9 +238,40 @@ table.on('draw.dt', function () {
 table.settings()[0]._searchFilterId = 'users';
 ```
 
-**Default yang sudah diatur `IplatDataTable`:** `scrollX`, `fixedColumns: { right: 1 }`,
+**Default yang sudah diatur `IplatDataTable`:** `scrollX`, `fixedColumns: { start: 1, end: 0 }`
+(kolom pertama "No." terkunci di kiri; sisi kanan tanpa kolom terkunci),
 `pageLength` 10, `lengthMenu [10,25,50,100]`, bahasa dari `window.dtLangDefaults`,
 `info`, dan ikon pagination (chevron bootstrap-icons).
+
+#### Kolom tetap (Fixed columns)
+
+FixedColumns 5 menempelkan sebuah kolom sementara kolom lain bergeser horizontal. Default
+mengunci kolom pertama (No.) saja. Untuk membuat kolom tetap sendiri, override
+`fixedColumns` di config instance (halaman index):
+
+```js
+var table = IplatDataTable.init('#ordersTable', {
+    fixedColumns: { start: 1, end: 1 },  // kunci No. di kiri DAN Actions di kanan
+    // ...opsi lainnya
+});
+```
+
+`start` = jumlah kolom yang dikunci dari kiri, `end` = jumlah kolom yang dikunci dari
+kanan. Keduanya bernilai default `1` bila opsi dihilangkan, jadi hapus `fixedColumns`
+seluruhnya jika tidak ingin ada kolom yang dikunci.
+
+Ketentuan / catatan:
+
+- Plugin mengandalkan `position: sticky`, jadi kontainer **tidak boleh** menjadi
+  scroll-origin: `.dt-container` memakai `overflow: clip` (tetap memotong sudut
+  membulat tanpa memblokir sticky). Jangan dikembalikan ke `overflow: hidden`, atau kolom
+  tetap diam-diam berhenti bekerja (forum DataTables #76300).
+- Sel yang diberi gaya ditandai FixedColumns dengan class `dtfc-fixed-start` /
+  `dtfc-fixed-end`. Stylesheet default memberi sel tubuh yang dikunci latar putih solid
+  agar konten yang bergeser tidak tembus dari balik sel transparan. Class `.dtfc-fixed-*`
+  dihasilkan plugin, bukan ditulis manual per tabel.
+- Sel header tetap mengikuti tema hijau karena rule `thead > tr > th` yang sudah ada
+  menang berdasarkan specificity.
 
 Tips:
 - Data yang ditampilkan dari AJAX selalu di-escape: `escHtml()` (buat helper lokal).
@@ -368,43 +400,47 @@ Include komponen sekali:
 @include('components.iplat1.confirm-delete')
 ```
 
-Memberikan dua modal: `#confirmDeleteModal` (merah) dan `#confirmWarningModal` (oranye).
+Memberikan dua modal: `#confirmDeleteModal` (merah) dan `#confirmWarningModal` (oranye),
+serta mengikat pengiriman hapus `#btnConfirmDelete` secara internal (dijaga dengan
+keberadaan `Iplat`).
 
 Panggilan:
 
 ```js
-// 1 langkah: langsung konfirmasi hapus
+// 1 langkah: langsung konfirmasi hapus (nama disimpan & ditampilkan di pesan)
 Iplat.confirmDelete(routes.destroy.replace(':id', ulid), function() {
     if (table) table.ajax.reload(null, false);
-}, 'Pesan kustom (opsional, default dari general.confirm_delete)');
+}, data.name);
+
+// 1 langkah dengan pesan kustom penuh (arg ke-4 opsional; `:name` tetap diganti jika ada)
+Iplat.confirmDelete(routes.destroy.replace(':id', ulid), callback, data.name, 'Teks kustom untuk <strong>:name</strong>');
+
+// 1 langkah dengan judul modal kustom juga (arg ke-5 opsional; kembali ke judul bawaan jika kosong)
+Iplat.confirmDelete(routes.destroy.replace(':id', ulid), callback, data.name, message, 'Hapus ' + data.name + '?');
 
 // 2 langkah: warning dulu, lanjut ke modal hapus
-Iplat.confirmWarning(message, routes.destroy.replace(':id', ulid), callback);
+//   confirmWarning(pesanWarning, url, onSuccess, name, deleteMessage?, title?)
+//   - deleteMessage: pesan kustom untuk langkah hapus (diteruskan ke confirmDelete)
+//   - title: judul kustom untuk KEDUA modal (warning dan hapus)
+Iplat.confirmWarning(message, routes.destroy.replace(':id', ulid), callback, data.name,
+    'Teks kustom untuk <strong>:name</strong>', 'Hapus ' + data.name + '?');
 ```
 
-Daftarkan handler `#btnConfirmDelete` sekali di halaman:
-
-```js
-var originalDeleteHtml = $('#btnConfirmDelete').html();
-$('#btnConfirmDelete').on('click', function() {
-    var url = $('#confirmDeleteModal').data('delete-url');
-    var callback = $('#confirmDeleteModal').data('on-success');
-    $('#btnConfirmDelete').prop('disabled', true)
-        .html('<span class="spinner-border spinner-border-sm me-1"></span>' + window.iplatTranslations.deleting);
-    Iplat.ajax(url, 'DELETE', {}, function(res) {
-        Iplat.toast(res.message, 'success');
-        bootstrap.Modal.getInstance('#confirmDeleteModal').hide();
-        if (callback) callback();
-    }, function() {
-        $('#btnConfirmDelete').prop('disabled', false).html(originalDeleteHtml);
-    });
-});
-
-// Pulihkan tombol saat modal ditutup
-$('#confirmDeleteModal').on('hidden.bs.modal', function () {
-    $('#btnConfirmDelete').prop('disabled', false).html(originalDeleteHtml);
-});
-```
+- Jika `name` diberikan, pesan dibangun dari `general.confirm_delete_with` (`:name`
+  di-escape HTML dan ditampilkan tebal oleh template terjemahan, mis. `<strong>:name</strong>`)
+  dan disimpan sebagai data `#confirmDeleteModal` (`delete-name`). Tanpa `name`, pesan
+  default `general.confirm_delete` digunakan.
+- Argumen ke-4 (`message`, opsional) sepenuhnya menimpa pesan; `:name` di dalamnya tetap
+  diganti dengan nama yang sudah di-escape. Jika `name` dan `message` sama-sama kosong, pesan
+  default `general.confirm_delete` yang ditampilkan.
+- Argumen ke-5 (`title`, opsional) menimpa judul modal (`#confirmDeleteModalTitle` dan, untuk
+  `confirmWarning`, `#confirmWarningModalTitle`); jika kosong, judul default terjemahan
+  digunakan kembali. Title di-set sebagai teks biasa (bukan HTML).
+- `confirmWarning(message, url, onSuccess, name, deleteMessage, title)` meneruskan dua argumen
+  terakhir ke `confirmDelete` untuk langkah hapus.
+- Perilaku `#btnConfirmDelete` (disable + spinner, `Iplat.ajax` DELETE, memanggil
+  `on-success` tersimpan, pulihkan tombol saat modal ditutup) sudah ada di dalam
+  komponen — tidak perlu mendaftarkan handler per halaman.
 
 ---
 
@@ -438,7 +474,64 @@ Render satu baris `<tr>` dalam `<tbody>` — untuk tabel non-server-side yang ko
 
 ---
 
-## 9. Konvensi & Checklist
+## 9. Badge List (modal lazy)
+
+Menampilkan modal berisi list nama yang di-fetch saat modal dibuka (tidak ada yang di-load saat halaman render).
+
+```blade
+@include('components.iplat1.badge-list')
+```
+
+Menyediakan `#badgeListModal` (judul `#badgeListModalTitle`, isi scroll `#badgeListBody`).
+
+```js
+Iplat.showBadgeList(url, title, emptyText, itemKey, cols, box);
+```
+
+- `url` — endpoint yang mengembalikan `{ data: { <itemKey>: [...] } }`.
+- `title` — judul modal teks biasa (fallback: judul sebelumnya).
+- `emptyText` — ditampilkan bila list kosong.
+- `itemKey` — array mana yang dibaca; default `items`.
+- `cols` (opsional) — jumlah kolom grid Bootstrap (`col-md-{12/cols}`). Bila tidak di-set,
+  tampilan flex-wrap badge tetap dipakai. Bila `cols` ada, tiap item jadi sel penuh ber-border:
+  string ditampilkan sebagai teks; objek `{ name, email }` menampilkan nama
+  (`fw-semibold`) dengan email kecil muted di bawahnya (`h-100` menjaga tinggi sel seragam).
+- Item bisa berupa string biasa (dirender sebagai badge) atau objek
+  `{ name, email }` (dirender sebagai badge dua baris dengan email di bawah nama).
+- Menampilkan spinner saat loading; menampilkan `iplatTranslations.errorOccurred` bila gagal.
+- Dialog memakai `modal-lg`. Sel grid membawa class `badge-list-cell` dan badge membawa
+  `badge-list-item` (`overflow-wrap`/`word-break`) sehingga teks panjang wrap di dalam
+  selnya sendiri tanpa menimpa tetangga.
+- `box` (opsional, default `false`) — bila `true`, kotak `border rounded p-3` pada
+  `#badgeListBody` tetap dipertahankan (sama seperti default blade). Bila `false`/tidak di-set,
+  kotak dilepas sehingga konten memakai lebar penuh `modal-body` (gaya modal assign-permission;
+  perilaku `max-height`/scroll tetap dipertahankan).
+
+Contoh (dari `sysadmin.role-permissions`):
+
+```js
+// render badge → clickable
+'<a href="javascript:void(0)" class="badge bg-warning text-dark text-decoration-none" ' +
+ 'onclick="openBadgeList(\'users\', \'' + row.ulid + '\', \'' + escHtml(row.name) + '\')">…</a>'
+
+// handler
+window.openBadgeList = function(type, ulid, name) {
+    var cfg = {
+        permissions: { url: routes.rolePermissions.replace(':id', ulid), title: lang.permissionsOf.replace(':name', name), empty: lang.noPermissions, itemKey: 'permissions', cols: 3 },
+        users:       { url: routes.roleUsers.replace(':id', ulid),       title: lang.usersOf.replace(':name', name),       empty: lang.noUsers,       itemKey: 'items',       cols: 2,       box: true },
+        roles:       { url: routes.permissionRoles.replace(':id', ulid), title: lang.rolesOf.replace(':name', name),       empty: lang.noRoles,       itemKey: 'items' }
+    }[type];
+    Iplat.showBadgeList(cfg.url, cfg.title, cfg.empty, cfg.itemKey, cfg.cols, cfg.box);
+};
+```
+
+Endpoint backend cukup mengembalikan list nama kecil, mis. `RolePermissionController@getRoleUsers`
+mengembalikan `{ data: { role, items: [{ name, email }] } }` (user diurutkan berdasarkan nama).
+Request `$.get` read-only seperti ini tidak butuh CSRF, jadi `Iplat.ajax` tidak diperlukan di sini.
+
+---
+
+## 10. Konvensi & Checklist
 
 - **ULID di URL**: controller menggunakan `where('ulid', $id)->firstOrFail()`. Model
   menyembunyikan id numerik agar tidak bocor ke JSON/response: `#[Hidden(['id'])]` (karena

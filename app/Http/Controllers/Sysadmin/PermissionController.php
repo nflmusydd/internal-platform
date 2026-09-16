@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Sysadmin;
 use App\Http\Controllers\Controller;
 use App\Models\Permission;
 use App\Exports\PermissionsExport;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -125,6 +126,17 @@ class PermissionController extends Controller
         return response()->json(['data' => $permissions]);
     }
 
+    public function getPermissionRoles(string $id)
+    {
+        $permission = Permission::where('ulid', $id)->firstOrFail();
+        return response()->json([
+            'data' => [
+                'permission' => $permission->name,
+                'items' => $permission->roles()->orderBy('name')->pluck('name')->values()->toArray(),
+            ],
+        ]);
+    }
+
     public function exportPermissions(Request $request)
     {
         $permissions = Permission::withCount('roles');
@@ -141,6 +153,12 @@ class PermissionController extends Controller
             } else {
                 $permissions->doesntHave('roles');
             }
+        }
+        if ($request->filled('created_at_from')) {
+            $permissions->where('created_at', '>=', Carbon::createFromFormat('d/m/Y', $request->created_at_from)->startOfDay());
+        }
+        if ($request->filled('created_at_to')) {
+            $permissions->where('created_at', '<=', Carbon::createFromFormat('d/m/Y', $request->created_at_to)->endOfDay());
         }
 
         $permissions = $permissions->orderBy('name')->get();

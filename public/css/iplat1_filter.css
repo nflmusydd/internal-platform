@@ -21,6 +21,9 @@
     font-weight: 500;
     flex-shrink: 0;
     transition: all 0.2s ease;
+    background-color: transparent !important;
+    border: 1px solid var(--primary-green, #043523) !important;
+    color: var(--primary-green, #043523) !important;
 }
 .search-filter-toggle:hover {
     background-color: #e8f5e9 !important;
@@ -243,6 +246,9 @@
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
+    background-color: transparent !important;
+    border: 1px solid var(--primary-green, #043523) !important;
+    color: var(--primary-green, #043523) !important;
 }
 .filter-reset:hover {
     background-color: #e8f5e9 !important;
@@ -265,6 +271,9 @@
     font-weight: 500;
     display: inline-flex;
     align-items: center;
+    background-color: transparent !important;
+    border: 1px solid var(--primary-green, #043523) !important;
+    color: var(--primary-green, #043523) !important;
 }
 .btn.filter-toolbar-btn:hover {
     background-color: #e8f5e9 !important;

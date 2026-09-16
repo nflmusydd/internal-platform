@@ -98,6 +98,17 @@
                             '0' => __('sysadmin/role-permissions/index.filter_no'),
                         ]
                     ],
+                    [
+                        'key' => 'created_at_from',
+                        'type' => 'date',
+                        'label' => __('sysadmin/role-permissions/index.filter_label_created_from'),
+                        'newRow' => true,
+                    ],
+                    [
+                        'key' => 'created_at_to',
+                        'type' => 'date',
+                        'label' => __('sysadmin/role-permissions/index.filter_label_created_to'),
+                    ],
                 ],
             ])
             <table class="table table-hover align-middle mb-0" id="rolesTable" style="width:100%">
@@ -108,6 +119,7 @@
                         <th>{{ ucfirst(__('general.guard')) }}</th>
                         <th>{{ ucfirst(__('general.permissions')) }}</th>
                         <th>{{ ucfirst(__('general.used_by')) }}</th>
+                        <th>{{ ucfirst(__('sysadmin/role-permissions/index.created_at')) }}</th>
                         <th class="text-center">{{ ucfirst(__('general.actions')) }}</th>
                     </tr>
                 </thead>
@@ -168,6 +180,17 @@
                             '0' => __('sysadmin/role-permissions/index.filter_no'),
                         ]
                     ],
+                    [
+                        'key' => 'created_at_from',
+                        'type' => 'date',
+                        'label' => __('sysadmin/role-permissions/index.filter_label_created_from'),
+                        'newRow' => true,
+                    ],
+                    [
+                        'key' => 'created_at_to',
+                        'type' => 'date',
+                        'label' => __('sysadmin/role-permissions/index.filter_label_created_to'),
+                    ],
                 ],
             ])
             <table class="table table-hover align-middle mb-0" id="permissionsTable" style="width:100%">
@@ -177,6 +200,7 @@
                         <th>{{ ucfirst(__('general.name')) }}</th>
                         <th>{{ ucfirst(__('general.guard')) }}</th>
                         <th>{{ ucfirst(__('general.used_by')) }}</th>
+                        <th>{{ ucfirst(__('sysadmin/role-permissions/index.created_at')) }}</th>
                         <th class="text-center">{{ ucfirst(__('general.actions')) }}</th>
                     </tr>
                 </thead>
@@ -286,6 +310,7 @@
 </div>
 
 @include('components.iplat1.confirm-delete')
+@include('components.iplat1.badge-list')
 
 @push('scripts')
 <script>
@@ -294,6 +319,8 @@ $(function() {
         roles: '{{ route("sysadmin.role_permissions.ajax.roles") }}',
         exportRoles: '{{ route("sysadmin.role_permissions.ajax.export_roles") }}',
         rolePermissions: '{{ route("sysadmin.role_permissions.ajax.role_permissions", ":id") }}',
+        roleUsers: '{{ route("sysadmin.role_permissions.ajax.role_users", ":id") }}',
+        permissionRoles: '{{ route("sysadmin.permissions.ajax.permission_roles", ":id") }}',
         syncPermissions: '{{ route("sysadmin.role_permissions.ajax.sync_permissions", ":id") }}',
         permissions: '{{ route("sysadmin.permissions.ajax.all") }}',
         exportPermissions: '{{ route("sysadmin.permissions.ajax.export_permissions") }}',
@@ -316,10 +343,15 @@ $(function() {
         noDataRole: @json(__('sysadmin/role-permissions/index.no_data_role')),
         noDataPermission: @json(__('sysadmin/role-permissions/index.no_data_permission')),
         roles: @json(__('general.roles')),
-        confirmDeleteWith: @json(__('general.confirm_delete_with')),
         noPermissionsAvailable: @json(__('sysadmin/role-permissions/index.no_permissions_available')),
         permissionCount: @json(__('sysadmin/role-permissions/index.permission_count')),
         usersCount: @json(__('general.count_users')),
+        permissionsOf: @json(__('sysadmin/role-permissions/index.permissions_of')),
+        usersOf: @json(__('sysadmin/role-permissions/index.users_of')),
+        rolesOf: @json(__('sysadmin/role-permissions/index.roles_of')),
+        noPermissions: @json(__('sysadmin/role-permissions/index.no_permissions')),
+        noUsers: @json(__('sysadmin/role-permissions/index.no_users')),
+        noRoles: @json(__('sysadmin/role-permissions/index.no_roles')),
         assignPermissionsTo: @json(__('sysadmin/role-permissions/index.assign_permissions_to')),
         titleEdit: @json(__('sysadmin/role-permissions/index.title_edit')),
         titleDelete: @json(__('sysadmin/role-permissions/index.title_delete')),
@@ -330,6 +362,14 @@ $(function() {
         attrName: @json(__('validation.attributes.name')),
         attrGuardName: @json(__('validation.attributes.guard')),
     };
+
+    // ==================== HELPERS ====================
+    function formatDateTime(d) {
+        if (!d) return '-';
+        var date = new Date(d);
+        return date.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' +
+               date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    }
 
     // ==================== DATATABLES INIT ====================
     var rolesTable = null;
@@ -353,22 +393,24 @@ $(function() {
                 { data: null, orderable: false, searchable: false, className: 'ps-3 text-muted', defaultContent: '' },
                 { data: 'name', className: 'fw-semibold' },
                 { data: 'guard_name', render: function(d) { return '<span class="badge bg-secondary">' + escHtml(d) + '</span>'; } },
-                { data: 'permissions_count', render: function(d) {
+                { data: 'permissions_count', render: function(d, type, row) {
                     if (d === 0) return '<span class="text-muted">-</span>';
                     var label = d !== 1 ? lang.permissionCount.split('|')[1] : lang.permissionCount.split('|')[0];
-                    return '<span class="badge bg-info text-dark">' + label.replace(':count', d) + '</span>';
+                    return '<a href="javascript:void(0)" class="badge bg-info text-dark text-decoration-none" onclick="openBadgeList(\'permissions\', \'' + row.ulid + '\', \'' + escHtml(row.name) + '\')">' + label.replace(':count', d) + '</a>';
                 }},
-                { data: 'users_count', render: function(d) {
+                { data: 'users_count', render: function(d, type, row) {
                     if (d === 0) return '<span class="text-muted">-</span>';
                     var label = d !== 1 ? lang.usersCount.split('|')[1] : lang.usersCount.split('|')[0];
-                    return '<span class="badge bg-warning text-dark">' + label.replace(':count', d) + '</span>';
+                    return '<a href="javascript:void(0)" class="badge bg-warning text-dark text-decoration-none" onclick="openBadgeList(\'users\', \'' + row.ulid + '\', \'' + escHtml(row.name) + '\')">' + label.replace(':count', d) + '</a>';
                 }},
+                { data: 'created_at', render: function(d) { return formatDateTime(d); }},
                 { data: null, orderable: false, className: 'text-center', render: function(d) {
                     return '<button class="btn btn-sm btn-outline-primary me-1" onclick="openAssignPermModal(\'' + d.ulid + '\', \'' + escHtml(d.name) + '\')" title="' + lang.titleEdit + '"><i class="bi bi-shield-check"></i></button>' +
                            '<button class="btn btn-sm btn-outline-warning me-1" onclick="openRoleModal(\'' + d.ulid + '\', \'' + escHtml(d.name) + '\', \'' + escHtml(d.guard_name) + '\')" title="' + lang.titleEdit + '"><i class="bi bi-pencil"></i></button>' +
                            '<button class="btn btn-sm btn-outline-danger" onclick="deleteRole(\'' + d.ulid + '\')" title="' + lang.titleDelete + '"><i class="bi bi-trash"></i></button>';
                 }}
             ],
+            fixedColumns: { start: 2, end: 0 },
             columnDefs: [
                 { width: '20px', targets: 0 }
             ],
@@ -386,7 +428,7 @@ $(function() {
             id: 'roles',
             table: rolesTable,
             columnMap: { name: 1, guard: 2 },
-            customFilters: { hasPermissions: true, hasUsers: true },
+            customFilters: { hasPermissions: true, hasUsers: true, created_at_from: true, created_at_to: true },
             onStateChange: function(s) { window.filterState['roles'] = s; }
         });
     }
@@ -409,16 +451,17 @@ $(function() {
                 { data: null, orderable: false, searchable: false, className: 'ps-3 text-muted', defaultContent: '' },
                 { data: 'name', className: 'fw-semibold' },
                 { data: 'guard_name', render: function(d) { return '<span class="badge bg-secondary">' + escHtml(d) + '</span>'; } },
-                { data: 'roles_count', render: function(d) {
-                    return d > 0
-                        ? '<span class="badge bg-warning text-dark">' + d + ' ' + escHtml(lang.roles) + '</span>'
-                        : '<span class="text-muted">-</span>';
+                { data: 'roles_count', render: function(d, type, row) {
+                    if (d === 0) return '<span class="text-muted">-</span>';
+                    return '<a href="javascript:void(0)" class="badge bg-warning text-dark text-decoration-none" onclick="openBadgeList(\'roles\', \'' + row.ulid + '\', \'' + escHtml(row.name) + '\')">' + d + ' ' + escHtml(lang.roles) + '</a>';
                 }},
+                { data: 'created_at', render: function(d) { return formatDateTime(d); }},
                 { data: null, orderable: false, className: 'text-center', render: function(d) {
                     return '<button class="btn btn-sm btn-outline-warning me-1" onclick="openPermissionModal(\'' + d.ulid + '\', \'' + escHtml(d.name) + '\', \'' + escHtml(d.guard_name) + '\')" title="' + lang.titleEdit + '"><i class="bi bi-pencil"></i></button>' +
                            '<button class="btn btn-sm btn-outline-danger" onclick="deletePermission(\'' + d.ulid + '\')" title="' + lang.titleDelete + '"><i class="bi bi-trash"></i></button>';
                 }}
             ],
+            fixedColumns: { start: 2, end: 0 },
             columnDefs: [
                 { width: '20px', targets: 0 }
             ],
@@ -435,7 +478,7 @@ $(function() {
             id: 'permissions',
             table: permissionsTable,
             columnMap: { name: 1, guard: 2 },
-            customFilters: { inUse: true },
+            customFilters: { inUse: true, created_at_from: true, created_at_to: true },
             onStateChange: function(s) { window.filterState['permissions'] = s; }
         });
     }
@@ -478,6 +521,29 @@ $(function() {
         if (val === '1') return rowData.roles_count > 0;
         if (val === '0') return rowData.roles_count === 0;
         return true;
+    });
+
+    function dateFilterLogic(val, rowDate, operator) {
+        if (!val || !rowDate) return true;
+        var parts = val.split('/');
+        var filterDate = new Date(parts[2], parts[1] - 1, parts[0]);
+        if (operator === 'to') filterDate.setHours(23, 59, 59, 999);
+        var dataDate = new Date(rowDate);
+        if (operator === 'from') return dataDate >= filterDate;
+        if (operator === 'to') return dataDate <= filterDate;
+        return true;
+    }
+
+    IplatFilter.registerCustomSearch('created_at_from', function (val, settings, data, dataIndex) {
+        var api = new $.fn.dataTable.Api(settings);
+        var rowData = api.row(dataIndex).data();
+        return dateFilterLogic(val, rowData.created_at, 'from');
+    });
+
+    IplatFilter.registerCustomSearch('created_at_to', function (val, settings, data, dataIndex) {
+        var api = new $.fn.dataTable.Api(settings);
+        var rowData = api.row(dataIndex).data();
+        return dateFilterLogic(val, rowData.created_at, 'to');
     });
 
     window.filterState = {};
@@ -564,18 +630,12 @@ $(function() {
     window.deleteRole = function(id) {
         var row = rolesTable.row($('[onclick*="deleteRole(\'' + id + '\')"]').closest('tr'));
         var data = row.data();
+        var cb = function() { if (rolesTable) rolesTable.ajax.reload(null, false); };
         if (data && data.users_count > 0) {
             var msg = lang.warningRoleInUse.replace(':name', data.name).replace(':count', data.users_count);
-            Iplat.confirmWarning(
-                msg,
-                routes.deleteRole.replace(':id', id),
-                function() { if (rolesTable) rolesTable.ajax.reload(null, false); }
-            );
+            Iplat.confirmWarning(msg, routes.deleteRole.replace(':id', id), cb, data.name);
         } else {
-            var msg = lang.confirmDeleteWith.replace(':name', data.name);
-            Iplat.confirmDelete(routes.deleteRole.replace(':id', id), function() {
-                if (rolesTable) rolesTable.ajax.reload(null, false);
-            }, msg);
+            Iplat.confirmDelete(routes.deleteRole.replace(':id', id), cb, data.name);
         }
     };
 
@@ -644,23 +704,26 @@ $(function() {
     window.deletePermission = function(id) {
         var row = permissionsTable.row($('[onclick*="deletePermission(\'' + id + '\')"]').closest('tr'));
         var data = row.data();
+        var cb = function() {
+            if (permissionsTable) permissionsTable.ajax.reload(null, false);
+            if (rolesTable) rolesTable.ajax.reload(null, false);
+        };
         if (data && data.roles_count > 0) {
             var msg = lang.warningPermissionInUse.replace(':name', data.name).replace(':count', data.roles_count);
-            Iplat.confirmWarning(
-                msg,
-                routes.deletePermission.replace(':id', id),
-                function() {
-                    if (permissionsTable) permissionsTable.ajax.reload(null, false);
-                    if (rolesTable) rolesTable.ajax.reload(null, false);
-                }
-            );
+            Iplat.confirmWarning(msg, routes.deletePermission.replace(':id', id), cb, data.name);
         } else {
-            var msg = lang.confirmDeleteWith.replace(':name', data.name);
-            Iplat.confirmDelete(routes.deletePermission.replace(':id', id), function() {
-                if (permissionsTable) permissionsTable.ajax.reload(null, false);
-                if (rolesTable) rolesTable.ajax.reload(null, false);
-            }, msg);
+            Iplat.confirmDelete(routes.deletePermission.replace(':id', id), cb, data.name);
         }
+    };
+
+    // ==================== BADGE LIST ====================
+    window.openBadgeList = function(type, ulid, name) {
+        var cfg = {
+            permissions: { url: routes.rolePermissions.replace(':id', ulid), title: lang.permissionsOf.replace(':name', name), empty: lang.noPermissions, itemKey: 'permissions', cols: 3 },
+            users: { url: routes.roleUsers.replace(':id', ulid), title: lang.usersOf.replace(':name', name), empty: lang.noUsers, itemKey: 'items', cols: 2, box: true },
+            roles: { url: routes.permissionRoles.replace(':id', ulid), title: lang.rolesOf.replace(':name', name), empty: lang.noRoles, itemKey: 'items' , cols:1, box: true}
+        }[type];
+        Iplat.showBadgeList(cfg.url, cfg.title, cfg.empty, cfg.itemKey, cfg.cols, cfg.box);
     };
 
     // ==================== ASSIGN PERMISSIONS ====================
@@ -710,22 +773,6 @@ $(function() {
         });
     });
 
-    // ==================== CONFIRM DELETE ====================
-    var originalDeleteHtml = $('#btnConfirmDelete').html();
-    $('#btnConfirmDelete').on('click', function() {
-        var $modal = $('#confirmDeleteModal');
-        var url = $modal.data('delete-url');
-        var callback = $modal.data('on-success');
-        $('#btnConfirmDelete').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>' + window.iplatTranslations.deleting);
-        Iplat.ajax(url, 'DELETE', {}, function(res) {
-            Iplat.toast(res.message, 'success');
-            bootstrap.Modal.getInstance('#confirmDeleteModal').hide();
-            if (callback) callback();
-        }, function() {
-            $('#btnConfirmDelete').prop('disabled', false).html(originalDeleteHtml);
-        });
-    });
-
     // ==================== CLEAR ERRORS ON INPUT ====================
     $('#roleName').on('input', function() { $(this).removeClass('is-invalid'); $('#roleNameError').text(''); });
     $('#roleGuard').on('input', function() { $(this).removeClass('is-invalid'); $('#roleGuardError').text(''); });
@@ -741,9 +788,6 @@ $(function() {
     });
     $('#assignPermModal').on('hidden.bs.modal', function() {
         $('#btnAssignPermSubmit').prop('disabled', false).html(originalAssignSubmitHtml);
-    });
-    $('#confirmDeleteModal').on('hidden.bs.modal', function() {
-        $('#btnConfirmDelete').prop('disabled', false).html(originalDeleteHtml);
     });
 
     // ==================== HELPERS ====================

@@ -94,25 +94,93 @@ var Iplat = (function () {
         });
     }
 
-    function confirmDelete(url, onSuccess, message) {
-        var $modal = $('#confirmDeleteModal');
-        if (message) {
-            $modal.find('.modal-body p').html(message);
+    function showBadgeList(url, title, emptyText, itemKey, cols, box) {
+        var $body = $('#badgeListBody');
+        if (!$body.length) return;
+        if (!box) {
+            $body.removeClass('border rounded p-3');
         } else {
-            $modal.find('.modal-body p').html($('#confirmDeleteDefaultMessage').val());
+            $body.addClass('border rounded p-3');
         }
-        $modal.data('delete-url', url);
-        $modal.data('on-success', onSuccess);
+        var loadingText = (window.iplatTranslations && window.iplatTranslations.loading) || 'Loading...';
+        if (title) $('#badgeListModalTitle').text(title);
+        $body.html('<div class="py-4"></div><div class="text-center"><div class="spinner-border spinner-border-sm me-2"></div>' + escHtml(loadingText) + '</div>');
+        new bootstrap.Modal('#badgeListModal').show();
+        $.get(url).done(function(res) {
+            var items = (res && res.data && (res.data[itemKey || 'items'] || []));
+            if (!items.length) {
+                $body.html('<div class="text-center text-muted py-4">' + escHtml(emptyText || '') + '</div>');
+                return;
+            }
+            if (cols) {
+                var colCls = 'col-md-' + Math.floor(12 / cols);
+                var html = items.map(function(item) {
+                    var isObj = typeof item === 'object' && item && item.name;
+                    var inner = isObj
+                        ? '<div class="fw-semibold">' + escHtml(item.name) + '</div>' +
+                          (item.email ? '<div class="text-muted small">' + escHtml(item.email) + '</div>' : '')
+                        : escHtml(item);
+                    return '<div class="col-12 ' + colCls + '"><div class="border rounded bg-light p-2 h-100 badge-list-cell">' + inner + '</div></div>';
+                }).join('');
+                $body.html('<div class="row g-2">' + html + '</div>');
+            } else {
+                var html = items.map(function(item) {
+                    if (typeof item === 'object' && item && item.name) {
+                        return '<span class="badge badge-list-item bg-light border text-dark p-3 me-1 mb-1 text-start">' +
+                            escHtml(item.name) +
+                            (item.email ? '<br><small class="text-muted">' + escHtml(item.email) + '</small>' : '') +
+                            '</span>';
+                    }
+                    return '<span class="badge badge-list-item bg-light border text-dark p-2 me-1 mb-1">' + escHtml(item) + '</span>';
+                }).join('');
+                $body.html('<div class="d-flex flex-wrap">' + html + '</div>');
+            }
+        }).fail(function() {
+            var msg = (window.iplatTranslations && window.iplatTranslations.errorOccurred) || 'An error occurred';
+            $body.html('<div class="text-center text-danger py-4">' + escHtml(msg) + '</div>');
+        });
+    }
+
+    function escHtml(str) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str || ''));
+        return div.innerHTML;
+    }
+
+    var defaultDeleteTitle = null;
+    var defaultWarningTitle = null;
+
+    function confirmDelete(url, onSuccess, name, message, title) {
+        var $modal = $('#confirmDeleteModal');
+        var body;
+        if (typeof message === 'string' && message.trim()) {
+            body = name ? message.replace(':name', escHtml(name)) : message;
+        } else if (name) {
+            var tpl = (window.iplatTranslations && window.iplatTranslations.confirmDeleteWith) || 'Delete <strong>:name</strong>?';
+            body = tpl.replace(':name', escHtml(name));
+        } else {
+            body = $('#confirmDeleteDefaultMessage').val();
+        }
+        var $title = $modal.find('#confirmDeleteModalTitle');
+        if (defaultDeleteTitle === null) defaultDeleteTitle = $title.text();
+        $title.text(typeof title === 'string' && title.trim() ? title : defaultDeleteTitle);
+        $modal.find('.modal-body p').html(body);
+        $modal.data('delete-url', url)
+              .data('on-success', onSuccess)
+              .data('delete-name', name || '');
         new bootstrap.Modal($modal[0]).show();
     }
 
-    function confirmWarning(message, url, onSuccess) {
+    function confirmWarning(message, url, onSuccess, name, deleteMessage, title) {
         $('#confirmWarningMessage').html(message);
+        var $title = $('#confirmWarningModalTitle');
+        if (defaultWarningTitle === null) defaultWarningTitle = $title.text();
+        $title.text(typeof title === 'string' && title.trim() ? title : defaultWarningTitle);
         var $modal = $('#confirmWarningModal');
         new bootstrap.Modal($modal[0]).show();
         $('#btnConfirmWarning').off('click').on('click', function () {
             bootstrap.Modal.getInstance($modal[0]).hide();
-            confirmDelete(url, onSuccess);
+            confirmDelete(url, onSuccess, name, deleteMessage, title);
         });
     }
 
@@ -133,6 +201,7 @@ var Iplat = (function () {
         resetModal: resetModal,
         showErrors: showValidationErrors,
         confirmDelete: confirmDelete,
-        confirmWarning: confirmWarning
+        confirmWarning: confirmWarning,
+        showBadgeList: showBadgeList
     };
 })();

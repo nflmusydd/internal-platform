@@ -58,6 +58,18 @@
 }
 
 /* ============================
+   Themed Checkboxes
+   ============================ */
+
+.form-check-input:checked {
+    background-color: var(--primary-green);
+    border-color: var(--primary-green);
+}
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.15rem rgba(4, 53, 35, 0.25);
+}
+
+/* ============================
    Draggable Modal
    ============================ */
 

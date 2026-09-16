@@ -407,10 +407,10 @@
                             <label for="registerPasswordConfirm" class="form-label">{{ ucfirst(__('auth.password_confirmation')) }}</label>
                             <input type="password" class="form-control"
                                    id="registerPasswordConfirm" name="password_confirmation"
-                                   placeholder="{{ __('auth.placeholder_password_confirmation') }}">
+                                   placeholder="{{ __('auth.placeholder_password') }}">
                             <div class="invalid-feedback" id="registerPasswordConfirmError"></div>
                         </div>
-                        <button type="submit" class="btn btn-auth w-100 mb-3">
+                        <button type="submit" class="btn btn-auth w-100 mt-3 mb-3">
                             <i class="bi bi-person-plus me-1"></i>{{ ucfirst(__('auth.register')) }}
                         </button>
                     </form>

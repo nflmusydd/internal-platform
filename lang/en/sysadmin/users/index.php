@@ -21,10 +21,8 @@ return [
     'title_delete'          => 'Delete',
     'cannot_delete_self'    => 'You cannot delete your own account.',
     'cannot_deactivate_self'=> 'You cannot deactivate your own account.',
-    'delete_warning_title'  => 'Are you sure?',
     'delete_warning_message'=> 'Deleting a user is permanent and cannot be undone. Consider <strong>deactivating</strong> the user instead by editing the user and changing their status to inactive.',
-    'deactivate_instead'    => 'Deactivate Instead',
-    'delete_anyway'         => 'Delete Anyway',
+    'delete_inactive_message'=> 'Deleting a user is permanent and cannot be undone. Are you sure you want to delete <strong>:name</strong>?',
     'created_at'            => 'Created at',
     'updated_at'            => 'Updated at',
 

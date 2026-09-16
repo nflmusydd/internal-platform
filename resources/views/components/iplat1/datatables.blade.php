@@ -20,7 +20,7 @@
 </script>
 <script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/2.1.8/js/dataTables.bootstrap5.min.js"></script>
-<script src="https://cdn.datatables.net/fixedcolumns/5.0.4/js/fixedColumns.min.js"></script>
+<script src="https://cdn.datatables.net/fixedcolumns/5.0.4/js/dataTables.fixedColumns.min.js"></script>
 <script src="{{ asset('js/iplat1_datatable.js') }}?v={{ filemtime(public_path('js/iplat1_datatable.js')) }}"></script>
 <script src="{{ asset('js/iplat1_filter.js') }}?v={{ filemtime(public_path('js/iplat1_filter.js')) }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>

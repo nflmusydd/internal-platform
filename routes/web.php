@@ -63,6 +63,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/ajax/roles', [RolePermissionController::class, 'getRoles'])->name('ajax.roles');
             Route::get('/ajax/export-roles', [RolePermissionController::class, 'exportRoles'])->name('ajax.export_roles');
             Route::get('/ajax/roles/{id}/permissions', [RolePermissionController::class, 'getRolePermissions'])->name('ajax.role_permissions');
+            Route::get('/ajax/roles/{id}/users', [RolePermissionController::class, 'getRoleUsers'])->name('ajax.role_users');
             Route::put('/ajax/roles/{id}/sync-permissions', [RolePermissionController::class, 'syncPermissions'])->name('ajax.sync_permissions');
             Route::post('/ajax', [RolePermissionController::class, 'store'])->name('ajax.store');
             Route::put('/ajax/roles/{id}', [RolePermissionController::class, 'update'])->name('ajax.update');
@@ -73,6 +74,7 @@ Route::middleware('auth')->group(function () {
         // PERMISSION
         Route::prefix('permissions')->name('permissions.')->group(function(){
             Route::get('/ajax/all', [PermissionController::class, 'getAll'])->name('ajax.all');
+            Route::get('/ajax/permissions/{id}/roles', [PermissionController::class, 'getPermissionRoles'])->name('ajax.permission_roles');
             Route::get('/ajax/export-permissions', [PermissionController::class, 'exportPermissions'])->name('ajax.export_permissions');
             Route::post('/ajax', [PermissionController::class, 'store'])->name('ajax.store');
             Route::put('/ajax/{id}', [PermissionController::class, 'update'])->name('ajax.update');

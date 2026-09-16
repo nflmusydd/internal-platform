@@ -575,6 +575,7 @@
         .app-main-content {
             flex: 1;         
             overflow-y: auto;
+            overflow-x: hidden;
         }
 
         /* ==========================================
@@ -788,10 +789,8 @@
             </header>
             
             <section class="app-main-content" height="100%">
-                <div class="row" height="100%">
-                <div class="col-12" id="app-main-body" height="100%">
+                <div id="app-main-body" height="100%">
                     @yield('app-main-content')
-                </div>
                 </div>
             </section>
 

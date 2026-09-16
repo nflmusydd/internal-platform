@@ -110,7 +110,7 @@ div.dt-container div.dt-info {
 div.dt-container {
     border: 1px solid #dee2e6;
     border-radius: 8px;
-    overflow: hidden;
+    overflow: clip;
 }
 div.dt-container div.dt-scroll-head {
     border-radius: 8px 8px 0 0;
@@ -119,11 +119,9 @@ div.dt-container div.dt-scroll-body {
     border-radius: 0 0 8px 8px;
 }
 
-/* Fixed columns */
-.dtfc-fixed-right,
-.dtfc-fixed-right-right {
+/* Fixed columns — solid background prevents scroll-through bleed */
+table.dataTable tbody tr > .dtfc-fixed-start {
     background-color: #fff !important;
-    box-shadow: -2px 0 4px rgba(0,0,0,0.08);
 }
 
 /* No-wrap */

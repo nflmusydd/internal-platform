@@ -2,8 +2,8 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold text-danger">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ ucfirst(__('general.confirm_delete_title')) }}
+<h5 class="modal-title fw-bold text-danger">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i><span id="confirmDeleteModalTitle">{{ ucfirst(__('general.confirm_delete_title')) }}</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -25,8 +25,8 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold" style="color:#e67700;">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ ucfirst(__('general.confirm_delete_title')) }}
+<h5 class="modal-title fw-bold" style="color:#e67700;">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i><span id="confirmWarningModalTitle">{{ ucfirst(__('general.confirm_delete_title')) }}</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -42,3 +42,32 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+$(function() {
+    if (typeof Iplat === 'undefined') return;
+
+    var $modal = $('#confirmDeleteModal');
+    var $btn = $('#btnConfirmDelete');
+    var originalDeleteHtml = $btn.html();
+
+    $btn.on('click', function () {
+        var deletingText = (window.iplatTranslations && window.iplatTranslations.deleting) || 'Deleting...';
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>' + deletingText);
+        Iplat.ajax($modal.data('delete-url'), 'DELETE', {}, function (res) {
+            Iplat.toast(res.message, 'success');
+            bootstrap.Modal.getInstance($modal[0]).hide();
+            var callback = $modal.data('on-success');
+            if (callback) callback();
+        }, function () {
+            $btn.prop('disabled', false).html(originalDeleteHtml);
+        });
+    });
+
+    $modal.on('hidden.bs.modal', function () {
+        $btn.prop('disabled', false).html(originalDeleteHtml);
+    });
+});
+</script>
+@endpush

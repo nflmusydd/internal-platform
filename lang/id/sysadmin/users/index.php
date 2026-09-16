@@ -21,10 +21,8 @@ return [
     'title_delete'          => 'Hapus',
     'cannot_delete_self'    => 'Anda tidak dapat menghapus akun Anda sendiri.',
     'cannot_deactivate_self'=> 'Anda tidak dapat menonaktifkan akun Anda sendiri.',
-    'delete_warning_title'  => 'Apakah Anda yakin?',
     'delete_warning_message'=> 'Menghapus pengguna bersifat permanen dan tidak dapat dibatalkan. Pertimbangkan untuk <strong>menonaktifkan</strong> pengguna dengan mengedit pengguna dan mengubah statusnya menjadi tidak aktif.',
-    'deactivate_instead'    => 'Nonaktifkan Saja',
-    'delete_anyway'         => 'Tetap Hapus',
+    'delete_inactive_message'=> 'Menghapus pengguna bersifat permanen dan tidak dapat dibatalkan. Apakah kamu yakin ingin menghapus <strong>:name</strong>?',
     'created_at'            => 'Dibuat pada',
     'updated_at'            => 'Diperbarui pada',
 

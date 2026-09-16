@@ -4,7 +4,7 @@ var IplatDataTable = (function () {
         processing: false,
         serverSide: false,
         scrollX: true,
-        fixedColumns: { right: 1 },
+        fixedColumns: { start: 1, end: 0 },
         info: true,
         layout: {
             topStart: 'pageLength',

@@ -176,31 +176,6 @@
     </div>
 </div>
 
-<div class="modal fade" id="confirmUserDeleteModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold" style="color:#e67700;">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ __('sysadmin/users/index.delete_warning_title') }}
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p class="mb-0">{!! __('sysadmin/users/index.delete_warning_message') !!}</p>
-            </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">{{ ucfirst(__('general.cancel')) }}</button>
-                <button type="button" class="btn btn-sm fw-semibold" style="background-color:#e67700;color:#fff;" id="btnDeactivateInstead">
-                    <i class="bi bi-toggle-off me-1"></i>{{ __('sysadmin/users/index.deactivate_instead') }}
-                </button>
-                <button type="button" class="btn btn-sm btn-danger fw-semibold" id="btnDeleteAnyway">
-                    <i class="bi bi-trash me-1"></i>{{ __('sysadmin/users/index.delete_anyway') }}
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
 @include('components.iplat1.confirm-delete')
 
 @push('scripts')
@@ -223,11 +198,11 @@ $(function() {
         add_user: @json(__('sysadmin/users/index.add_user')),
         edit_user: @json(__('sysadmin/users/index.edit_user')),
         no_data_user: @json(__('sysadmin/users/index.no_data_user')),
-        confirmDeleteWith: @json(__('general.confirm_delete_with')),
         title_edit: @json(__('sysadmin/users/index.title_edit')),
         title_delete: @json(__('sysadmin/users/index.title_delete')),
         cannot_delete_self: @json(__('sysadmin/users/index.cannot_delete_self')),
-        cannot_deactivate_self: @json(__('sysadmin/users/index.cannot_deactivate_self')),
+        delete_warning_message: @json(__('sysadmin/users/index.delete_warning_message')),
+        delete_inactive_message: @json(__('sysadmin/users/index.delete_inactive_message')),
         active: @json(__('sysadmin/users/index.active')),
         inactive: @json(__('sysadmin/users/index.inactive')),
         validationRequired: @json(__('validation.required')),
@@ -240,9 +215,6 @@ $(function() {
         attrPassword: @json(__('validation.attributes.password')),
         attrPasswordConfirmation: @json(__('validation.attributes.password_confirmation')),
         attrStatus: @json(__('sysadmin/users/index.status_label')),
-        deactivate_instead: @json(__('sysadmin/users/index.deactivate_instead')),
-        delete_anyway: @json(__('sysadmin/users/index.delete_anyway')),
-        delete_warning_title: @json(__('sysadmin/users/index.delete_warning_title')),
     };
 
     // ==================== DATATABLES INIT ====================
@@ -387,6 +359,7 @@ $(function() {
 
     // ==================== USERS ====================
     function setIsActiveDropdown(val) {
+        val = String(val);
         $('#userIsActive').val(val);
         var text = val === '1' ? lang.active : lang.inactive;
         $('#userIsActiveText').text(text);
@@ -531,41 +504,14 @@ $(function() {
             Iplat.toast(lang.cannot_delete_self, 'warning');
             return;
         }
-        $('#confirmUserDeleteModal').data('user-ulid', ulid).data('user-name', data.name);
-        new bootstrap.Modal('#confirmUserDeleteModal').show();
+        var url = routes.deleteUser.replace(':id', ulid);
+        var cb = function() { if (usersTable) usersTable.ajax.reload(null, false); };
+        if (data.is_active) {
+            Iplat.confirmWarning(lang.delete_warning_message, url, cb, data.name);
+        } else {
+            Iplat.confirmDelete(url, cb, data.name, lang.delete_inactive_message);
+        }
     };
-
-    $('#btnDeactivateInstead').on('click', function() {
-        var ulid = $('#confirmUserDeleteModal').data('user-ulid');
-        bootstrap.Modal.getInstance('#confirmUserDeleteModal').hide();
-        openUserModal(ulid);
-    });
-
-    $('#btnDeleteAnyway').on('click', function() {
-        var ulid = $('#confirmUserDeleteModal').data('user-ulid');
-        var name = $('#confirmUserDeleteModal').data('user-name');
-        bootstrap.Modal.getInstance('#confirmUserDeleteModal').hide();
-        var msg = lang.confirmDeleteWith.replace(':name', name);
-        Iplat.confirmDelete(routes.deleteUser.replace(':id', ulid), function() {
-            if (usersTable) usersTable.ajax.reload(null, false);
-        }, msg);
-    });
-
-    // ==================== CONFIRM DELETE ====================
-    var originalDeleteHtml = $('#btnConfirmDelete').html();
-    $('#btnConfirmDelete').on('click', function() {
-        var $modal = $('#confirmDeleteModal');
-        var url = $modal.data('delete-url');
-        var callback = $modal.data('on-success');
-        $('#btnConfirmDelete').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>' + window.iplatTranslations.deleting);
-        Iplat.ajax(url, 'DELETE', {}, function(res) {
-            Iplat.toast(res.message, 'success');
-            bootstrap.Modal.getInstance('#confirmDeleteModal').hide();
-            if (callback) callback();
-        }, function() {
-            $('#btnConfirmDelete').prop('disabled', false).html(originalDeleteHtml);
-        });
-    });
 
     // ==================== CLEAR ERRORS ON INPUT ====================
     $('#userName').on('input', function() { $(this).removeClass('is-invalid'); $('#userNameError').text(''); });
@@ -586,9 +532,6 @@ $(function() {
         $('#btnUserSubmit').prop('disabled', false).html(originalUserSubmitHtml);
         $('#userIsActive').prop('disabled', false);
         $('#userIsActive').closest('.dropdown').find('.filter-dropdown-toggle').prop('disabled', false);
-    });
-    $('#confirmDeleteModal').on('hidden.bs.modal', function() {
-        $('#btnConfirmDelete').prop('disabled', false).html(originalDeleteHtml);
     });
 
     // ==================== HELPERS ====================
