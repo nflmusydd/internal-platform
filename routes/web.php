@@ -45,7 +45,9 @@ Route::middleware('auth')->group(function () {
 
         // MENU
         Route::prefix('menus')->name('menus.')->group(function(){
-            Route::resource('/', MenuController::class);
+            Route::get('/ajax/menus', [MenuController::class, 'getAll'])->name('ajax.all');
+            Route::get('/ajax/export-menus', [MenuController::class, 'exportMenus'])->name('ajax.export_menus');
+            Route::resource('/', MenuController::class)->only('index');
         });
 
         // USER
