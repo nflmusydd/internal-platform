@@ -29,17 +29,21 @@
                         data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
                     <i class="bi bi-download me-1"></i>{{ ucfirst(__('general.download')) }}
                 </button>
-                <ul class="dropdown-menu shadow-sm">
+                <ul id="exportUsers" class="dropdown-menu shadow-sm">
                     <li>
-                        <a class="dropdown-item" href="javascript:void(0)" onclick="exportData('xlsx')">
+                        <a class="dropdown-item export-btn" href="javascript:void(0)" data-format="xlsx">
                             <i class="bi bi-file-earmark-excel text-success me-2"></i>XLSX
                         </a>
                     </li>
+                    {{-- <li>
+                        <a class="dropdown-item export-btn" href="javascript:void(0)" data-format="pdf">
+                            <i class="bi bi-file-earmark-pdf text-danger me-2"></i>PDF
+                        </a>
+                    </li> --}}
                 </ul>
             </div>
         </div>
-        <button class="btn btn-sm fw-semibold" style="background-color:var(--primary-green);color:#fff;"
-                onclick="openUserModal()">
+        <button id="addUserBtn" class="btn btn-sm fw-semibold" style="background-color:var(--primary-green);color:#fff;">
             <i class="bi bi-plus-lg me-1"></i>{{ ucfirst(__('general.add')) }} {{ ucfirst(__('general.user')) }}
         </button>
     </div>
@@ -190,7 +194,6 @@ $(function() {
     };
 
     var currentUserId = '{{ Auth::user()->ulid }}';
-    var currentUserIdInt = {{ Auth::user()->id }};
     var isSuperAdmin = {{ Auth::user()->hasRole('SUPER ADMIN') ? 'true' : 'false' }};
 
     var lang = {
@@ -220,13 +223,6 @@ $(function() {
     // ==================== DATATABLES INIT ====================
     var usersTable = null;
 
-    function formatDateTime(d) {
-        if (!d) return '-';
-        var date = new Date(d);
-        return date.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' +
-               date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-    }
-
     function initUsersTable() {
         if (usersTable) { usersTable.ajax.reload(null, false); return; }
         usersTable = IplatDataTable.init('#usersTable', {
@@ -239,7 +235,7 @@ $(function() {
             },
             columns: [
                 { data: null, orderable: false, searchable: false, className: 'ps-3 text-muted', defaultContent: '' },
-                { data: 'name', className: 'fw-semibold' },
+                { data: 'name', className: 'fw-semibold', render: function(d) { return escHtml(d) } },
                 { data: 'email', render: function(d) { return '<span class="text-muted">' + escHtml(d) + '</span>'; } },
                 { data: 'is_active', render: function(d) {
                     return d
@@ -249,11 +245,11 @@ $(function() {
                 { data: 'created_at', render: function(d) { return formatDateTime(d); }},
                 { data: 'updated_at', render: function(d) { return formatDateTime(d); }},
                 { data: null, orderable: false, className: 'text-center', render: function(d) {
-                    var editBtn = '<button class="btn btn-sm btn-outline-warning me-1" onclick="openUserModal(\'' + d.ulid + '\')" title="' + lang.title_edit + '"><i class="bi bi-pencil"></i></button>';
+                    var editBtn = '<button class="btn btn-sm btn-outline-warning me-1 edit-user-btn" data-id="' + d.ulid + '" title="' + lang.title_edit + '"><i class="bi bi-pencil"></i></button>';
                     if (d.ulid === currentUserId) {
                         return editBtn + '<button class="btn btn-sm btn-outline-secondary" disabled title="' + lang.cannot_delete_self + '"><i class="bi bi-trash"></i></button>';
                     }
-                    return editBtn + '<button class="btn btn-sm btn-outline-danger" onclick="deleteUser(\'' + d.ulid + '\')" title="' + lang.title_delete + '"><i class="bi bi-trash"></i></button>';
+                    return editBtn + '<button class="btn btn-sm btn-outline-danger delete-user-btn" data-id="' + d.ulid + '" title="' + lang.title_delete + '"><i class="bi bi-trash"></i></button>';
                 }}
             ],
             columnDefs: [
@@ -355,6 +351,23 @@ $(function() {
         var id = target.replace('filterBar-', '');
         IplatFilter.toggle(target);
         window.filterState[id] = IplatFilter.getState(id);
+    });
+    
+
+    $('#exportUsers').on('click', '.export-btn', function(e) {
+        e.preventDefault();
+        exportData($(this).data('format'));
+    });
+
+    $('#addUserBtn').on('click', function() {
+        openUserModal();
+    });
+
+    $('#usersTable').on('click', '.edit-user-btn', function() {
+    openUserModal($(this).data('id'));
+    });
+    $('#usersTable').on('click', '.delete-user-btn', function() {
+        deleteUser($(this).data('id'));
     });
 
     // ==================== USERS ====================
@@ -498,7 +511,7 @@ $(function() {
     });
 
     window.deleteUser = function(ulid) {
-        var row = usersTable.row($('[onclick*="deleteUser(\'' + ulid + '\')"]').closest('tr'));
+        var row = usersTable.row($('.delete-user-btn[data-id="' + ulid + '"]').closest('tr'));
         var data = row.data();
         if (data.ulid === currentUserId) {
             Iplat.toast(lang.cannot_delete_self, 'warning');
@@ -535,10 +548,11 @@ $(function() {
     });
 
     // ==================== HELPERS ====================
-    function escHtml(str) {
-        var div = document.createElement('div');
-        div.appendChild(document.createTextNode(str));
-        return div.innerHTML;
+    function formatDateTime(d) {
+        if (!d) return '-';
+        var date = new Date(d);
+        return date.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' +
+               date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
     }
 });
 </script>

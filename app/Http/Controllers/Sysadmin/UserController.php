@@ -26,7 +26,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
-            'password' => 'required|min:8|confirmed',
+            'password' => 'required|string|min:8|confirmed',
             'is_active' => 'required|in:0,1',
         ]);
 
@@ -71,7 +71,7 @@ class UserController extends Controller
 
         $canChangePassword = $isSuperAdmin || $isSelf;
         if ($canChangePassword && $request->filled('password')) {
-            $rules['password'] = 'required|min:8|confirmed';
+            $rules['password'] = 'required|string|min:8|confirmed';
         }
 
         $validated = $request->validate($rules);

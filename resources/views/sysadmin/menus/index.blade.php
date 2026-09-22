@@ -130,12 +130,6 @@ $(function() {
     };
 
     // ==================== HELPERS ====================
-    function escHtml(str) {
-        var div = document.createElement('div');
-        div.appendChild(document.createTextNode(str == null ? '' : str));
-        return div.innerHTML;
-    }
-
     function formatDateTime(d) {
         if (!d) return '-';
         var date = new Date(d);

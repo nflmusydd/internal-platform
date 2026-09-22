@@ -2,12 +2,18 @@ var Iplat = (function () {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || $('meta[name="csrf-token"]').attr('content');
 
     function ajaxRequest(url, method, data, onSuccess, onError) {
+        var upperMethod = method.toUpperCase();
+        var headers = {};
+        if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(upperMethod)) {
+            headers['X-CSRF-TOKEN'] = csrfToken;
+        }
+
         $.ajax({
             url: url,
             type: method,
             data: data,
             dataType: 'json',
-            headers: { 'X-CSRF-TOKEN': csrfToken },
+            headers: { 'X-CSRF-TOKEN': headers },
             success: function (response) {
                 if (onSuccess) onSuccess(response);
             },

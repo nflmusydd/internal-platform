@@ -48,17 +48,21 @@
                                 data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
                             <i class="bi bi-download me-1"></i>{{ ucfirst(__('general.download')) }}
                         </button>
-                        <ul class="dropdown-menu shadow-sm">
+                        <ul id="exportRoles" class="dropdown-menu shadow-sm">
                             <li>
-                                <a class="dropdown-item" href="javascript:void(0)" onclick="exportData('roles', 'xlsx')">
+                                <a class="dropdown-item export-btn" href="javascript:void(0)" data-type="roles" data-format="xlsx">
                                     <i class="bi bi-file-earmark-excel text-success me-2"></i>XLSX
                                 </a>
                             </li>
+                            {{-- <li>
+                                <a class="dropdown-item export-btn" href="javascript:void(0)" data-type="roles" data-format="pdf">
+                                    <i class="bi bi-file-earmark-pdf text-danger me-2"></i>PDF
+                                </a>
+                            </li> --}}
                         </ul>
                     </div>
                 </div>
-                <button class="btn btn-sm fw-semibold" style="background-color:var(--primary-green);color:#fff;"
-                        onclick="openRoleModal()">
+                <button id="addRoleBtn" class="btn btn-sm fw-semibold" style="background-color:var(--primary-green);color:#fff;">
                     <i class="bi bi-plus-lg me-1"></i>{{ ucfirst(__('general.add')) }} {{ ucfirst(__('general.role')) }}
                 </button>
             </div>
@@ -140,17 +144,21 @@
                                 data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
                             <i class="bi bi-download me-1"></i>{{ ucfirst(__('general.download')) }}
                         </button>
-                        <ul class="dropdown-menu shadow-sm">
+                        <ul id="exportPermissions" class="dropdown-menu shadow-sm">
                             <li>
-                                <a class="dropdown-item" href="javascript:void(0)" onclick="exportData('permissions', 'xlsx')">
+                                <a class="dropdown-item export-btn" href="javascript:void(0)" data-type="permissions" data-format="xlsx">
                                     <i class="bi bi-file-earmark-excel text-success me-2"></i>XLSX
                                 </a>
                             </li>
+                            {{-- <li>
+                                <a class="dropdown-item export-btn" href="javascript:void(0)" data-type="permissions" data-format="pdf">
+                                    <i class="bi bi-file-earmark-pdf text-danger me-2"></i>PDF
+                                </a>
+                            </li> --}}
                         </ul>
                     </div>
                 </div>
-                <button class="btn btn-sm fw-semibold" style="background-color:var(--primary-green);color:#fff;"
-                        onclick="openPermissionModal()">
+                <button id="addPermissionBtn" class="btn btn-sm fw-semibold" style="background-color:var(--primary-green);color:#fff;">
                     <i class="bi bi-plus-lg me-1"></i>{{ ucfirst(__('general.add')) }} {{ ucwords(__('general.permission')) }}
                 </button>
             </div>
@@ -231,7 +239,8 @@
                     </div>
                     <div class="mb-3">
                         <label for="roleGuard" class="form-label fw-semibold small">{{ __('sysadmin/role-permissions/index.guard_label') }} <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="roleGuard" name="guard_name" value="web" required>
+                        <input type="text" class="form-control" id="roleGuard" name="guard_name" placeholder="{{ __('sysadmin/role-permissions/index.example_guard_placeholder') }}"
+                                value="web" required>
                         <div class="invalid-feedback" id="roleGuardError"></div>
                     </div>
                 </div>
@@ -267,7 +276,8 @@
                     </div>
                     <div class="mb-3">
                         <label for="permissionGuard" class="form-label fw-semibold small">{{ __('sysadmin/role-permissions/index.guard_label') }} <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="permissionGuard" name="guard_name" value="web" required>
+                        <input type="text" class="form-control" id="permissionGuard" name="guard_name" placeholder="{{ __('sysadmin/role-permissions/index.example_guard_placeholder') }}", 
+                                value="web" required>
                         <div class="invalid-feedback" id="permissionGuardError"></div>
                     </div>
                 </div>
@@ -363,14 +373,6 @@ $(function() {
         attrGuardName: @json(__('validation.attributes.guard')),
     };
 
-    // ==================== HELPERS ====================
-    function formatDateTime(d) {
-        if (!d) return '-';
-        var date = new Date(d);
-        return date.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' +
-               date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-    }
-
     // ==================== DATATABLES INIT ====================
     var rolesTable = null;
     var permissionsTable = null;
@@ -391,23 +393,28 @@ $(function() {
             },
             columns: [
                 { data: null, orderable: false, searchable: false, className: 'ps-3 text-muted', defaultContent: '' },
-                { data: 'name', className: 'fw-semibold' },
+                { data: 'name', className: 'fw-semibold', render: function(d) { return escHtml(d) } },
                 { data: 'guard_name', render: function(d) { return '<span class="badge bg-secondary">' + escHtml(d) + '</span>'; } },
                 { data: 'permissions_count', render: function(d, type, row) {
                     if (d === 0) return '<span class="text-muted">-</span>';
                     var label = d !== 1 ? lang.permissionCount.split('|')[1] : lang.permissionCount.split('|')[0];
-                    return '<a href="javascript:void(0)" class="badge bg-info text-dark text-decoration-none" onclick="openBadgeList(\'permissions\', \'' + row.ulid + '\', \'' + escHtml(row.name) + '\')">' + label.replace(':count', d) + '</a>';
+                    // return '<a href="javascript:void(0)" class="badge bg-info text-dark text-decoration-none" onclick="openBadgeList(\'permissions\', \'' + row.ulid + '\', \'' + escHtml(row.name) + '\')">' + label.replace(':count', d) + '</a>';
+                    return '<a href="javascript:void(0)" class="badge bg-info text-dark text-decoration-none badge-list-btn" data-type="permissions" data-id="' + row.ulid + '" data-name="' + escHtml(row.name) + '">' + label.replace(':count', d) + '</a>';
                 }},
                 { data: 'users_count', render: function(d, type, row) {
                     if (d === 0) return '<span class="text-muted">-</span>';
                     var label = d !== 1 ? lang.usersCount.split('|')[1] : lang.usersCount.split('|')[0];
-                    return '<a href="javascript:void(0)" class="badge bg-warning text-dark text-decoration-none" onclick="openBadgeList(\'users\', \'' + row.ulid + '\', \'' + escHtml(row.name) + '\')">' + label.replace(':count', d) + '</a>';
+                    // return '<a href="javascript:void(0)" class="badge bg-warning text-dark text-decoration-none" onclick="openBadgeList(\'users\', \'' + row.ulid + '\', \'' + escHtml(row.name) + '\')">' + label.replace(':count', d) + '</a>';
+                    return '<a href="javascript:void(0)" class="badge bg-warning text-dark text-decoration-none badge-list-btn" data-type="users" data-id="' + row.ulid + '" data-name="' + escHtml(row.name) + '">' + label.replace(':count', d) + '</a>';
                 }},
                 { data: 'created_at', render: function(d) { return formatDateTime(d); }},
                 { data: null, orderable: false, className: 'text-center', render: function(d) {
-                    return '<button class="btn btn-sm btn-outline-primary me-1" onclick="openAssignPermModal(\'' + d.ulid + '\', \'' + escHtml(d.name) + '\')" title="' + lang.titleEdit + '"><i class="bi bi-shield-check"></i></button>' +
-                           '<button class="btn btn-sm btn-outline-warning me-1" onclick="openRoleModal(\'' + d.ulid + '\', \'' + escHtml(d.name) + '\', \'' + escHtml(d.guard_name) + '\')" title="' + lang.titleEdit + '"><i class="bi bi-pencil"></i></button>' +
-                           '<button class="btn btn-sm btn-outline-danger" onclick="deleteRole(\'' + d.ulid + '\')" title="' + lang.titleDelete + '"><i class="bi bi-trash"></i></button>';
+                    // return '<button class="btn btn-sm btn-outline-primary me-1" onclick="openAssignPermModal(\'' + d.ulid + '\', \'' + escHtml(d.name) + '\')" title="' + lang.titleEdit + '"><i class="bi bi-shield-check"></i></button>' +
+                    //        '<button class="btn btn-sm btn-outline-warning me-1" onclick="openRoleModal(\'' + d.ulid + '\', \'' + escHtml(d.name) + '\', \'' + escHtml(d.guard_name) + '\')" title="' + lang.titleEdit + '"><i class="bi bi-pencil"></i></button>' +
+                    //        '<button class="btn btn-sm btn-outline-danger" onclick="deleteRole(\'' + d.ulid + '\')" title="' + lang.titleDelete + '"><i class="bi bi-trash"></i></button>';
+                    return '<button class="btn btn-sm btn-outline-primary me-1 assign-perm-btn" data-id="' + d.ulid + '" data-name="' + escHtml(d.name) + '" title="' + lang.titleEdit + '"><i class="bi bi-shield-check"></i></button>' +
+                            '<button class="btn btn-sm btn-outline-warning me-1 edit-role-btn" data-id="' + d.ulid + '" data-name="' + escHtml(d.name) + '" data-guard="' + escHtml(d.guard_name) + '" title="' + lang.titleEdit + '"><i class="bi bi-pencil"></i></button>' +
+                            '<button class="btn btn-sm btn-outline-danger delete-role-btn" data-id="' + d.ulid + '" title="' + lang.titleDelete + '"><i class="bi bi-trash"></i></button>';
                 }}
             ],
             fixedColumns: { start: 2, end: 0 },
@@ -449,16 +456,19 @@ $(function() {
             },
             columns: [
                 { data: null, orderable: false, searchable: false, className: 'ps-3 text-muted', defaultContent: '' },
-                { data: 'name', className: 'fw-semibold' },
+                { data: 'name', className: 'fw-semibold', render: function(d) { return escHtml(d) } },
                 { data: 'guard_name', render: function(d) { return '<span class="badge bg-secondary">' + escHtml(d) + '</span>'; } },
                 { data: 'roles_count', render: function(d, type, row) {
                     if (d === 0) return '<span class="text-muted">-</span>';
-                    return '<a href="javascript:void(0)" class="badge bg-warning text-dark text-decoration-none" onclick="openBadgeList(\'roles\', \'' + row.ulid + '\', \'' + escHtml(row.name) + '\')">' + d + ' ' + escHtml(lang.roles) + '</a>';
+                    // return '<a href="javascript:void(0)" class="badge bg-warning text-dark text-decoration-none" onclick="openBadgeList(\'roles\', \'' + row.ulid + '\', \'' + escHtml(row.name) + '\')">' + d + ' ' + escHtml(lang.roles) + '</a>';
+                    return '<a href="javascript:void(0)" class="badge bg-warning text-dark text-decoration-none badge-list-btn" data-type="roles" data-id="' + row.ulid + '" data-name="' + escHtml(row.name) + '">' + d + ' ' + escHtml(lang.roles) + '</a>';
                 }},
                 { data: 'created_at', render: function(d) { return formatDateTime(d); }},
                 { data: null, orderable: false, className: 'text-center', render: function(d) {
-                    return '<button class="btn btn-sm btn-outline-warning me-1" onclick="openPermissionModal(\'' + d.ulid + '\', \'' + escHtml(d.name) + '\', \'' + escHtml(d.guard_name) + '\')" title="' + lang.titleEdit + '"><i class="bi bi-pencil"></i></button>' +
-                           '<button class="btn btn-sm btn-outline-danger" onclick="deletePermission(\'' + d.ulid + '\')" title="' + lang.titleDelete + '"><i class="bi bi-trash"></i></button>';
+                    // return '<button class="btn btn-sm btn-outline-warning me-1" onclick="openPermissionModal(\'' + d.ulid + '\', \'' + escHtml(d.name) + '\', \'' + escHtml(d.guard_name) + '\')" title="' + lang.titleEdit + '"><i class="bi bi-pencil"></i></button>' +
+                    //        '<button class="btn btn-sm btn-outline-danger" onclick="deletePermission(\'' + d.ulid + '\')" title="' + lang.titleDelete + '"><i class="bi bi-trash"></i></button>';
+                    return '<button class="btn btn-sm btn-outline-warning me-1 edit-perm-btn" data-id="' + d.ulid + '" data-name="' + escHtml(d.name) + '" data-guard="' + escHtml(d.guard_name) + '" title="' + lang.titleEdit + '"><i class="bi bi-pencil"></i></button>' +
+                            '<button class="btn btn-sm btn-outline-danger delete-perm-btn" data-id="' + d.ulid + '" title="' + lang.titleDelete + '"><i class="bi bi-trash"></i></button>';
                 }}
             ],
             fixedColumns: { start: 2, end: 0 },
@@ -568,6 +578,48 @@ $(function() {
         else if (tab === 'permissions') initPermissionsTable();
     });
 
+     $('#exportRoles').on('click', '.export-btn', function(e) {
+        e.preventDefault();
+        exportData($(this).data('type'), $(this).data('format'));
+    });
+
+    $('#exportPermissions').on('click', '.export-btn', function(e) {
+        e.preventDefault();
+        exportData($(this).data('type'), $(this).data('format'));
+    });
+
+    $('#addRoleBtn').on('click', function() {
+        openRoleModal();
+    });
+
+    $('#addPermissionBtn').on('click', function() {
+        openPermissionModal();
+    });
+
+    // ==================== DATATABLES EVENT LISTENERS ====================
+    $('#rolesTable').on('click', '.badge-list-btn', function() {
+        openBadgeList($(this).data('type'), $(this).data('id'), $(this).data('name'));
+    });
+    $('#rolesTable').on('click', '.assign-perm-btn', function() {
+        openAssignPermModal($(this).data('id'), $(this).data('name'));
+    });
+    $('#rolesTable').on('click', '.edit-role-btn', function() {
+        openRoleModal($(this).data('id'), $(this).data('name'), $(this).data('guard'));
+    });
+    $('#rolesTable').on('click', '.delete-role-btn', function() {
+        deleteRole($(this).data('id'));
+    });
+
+    $('#permissionsTable').on('click', '.badge-list-btn', function() {
+        openBadgeList($(this).data('type'), $(this).data('id'), $(this).data('name'));
+    });
+    $('#permissionsTable').on('click', '.edit-perm-btn', function() {
+        openPermissionModal($(this).data('id'), $(this).data('name'), $(this).data('guard'));
+    });
+    $('#permissionsTable').on('click', '.delete-perm-btn', function() {
+        deletePermission($(this).data('id'));
+    });
+
     // ==================== ROLES ====================
     window.openRoleModal = function(id, name, guard) {
         Iplat.resetModal('#roleModal');
@@ -628,7 +680,8 @@ $(function() {
     });
 
     window.deleteRole = function(id) {
-        var row = rolesTable.row($('[onclick*="deleteRole(\'' + id + '\')"]').closest('tr'));
+        // var row = rolesTable.row($('[onclick*="deleteRole(\'' + id + '\')"]').closest('tr'));
+        var row = rolesTable.row($('.delete-role-btn[data-id="' + id + '"]').closest('tr'));
         var data = row.data();
         var cb = function() { if (rolesTable) rolesTable.ajax.reload(null, false); };
         if (data && data.users_count > 0) {
@@ -702,7 +755,8 @@ $(function() {
     });
 
     window.deletePermission = function(id) {
-        var row = permissionsTable.row($('[onclick*="deletePermission(\'' + id + '\')"]').closest('tr'));
+        // var row = permissionsTable.row($('[onclick*="deletePermission(\'' + id + '\')"]').closest('tr'));
+        var row = permissionsTable.row($('.delete-perm-btn[data-id="' + id + '"]').closest('tr'));
         var data = row.data();
         var cb = function() {
             if (permissionsTable) permissionsTable.ajax.reload(null, false);
@@ -791,10 +845,11 @@ $(function() {
     });
 
     // ==================== HELPERS ====================
-    function escHtml(str) {
-        var div = document.createElement('div');
-        div.appendChild(document.createTextNode(str));
-        return div.innerHTML;
+    function formatDateTime(d) {
+        if (!d) return '-';
+        var date = new Date(d);
+        return date.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' +
+               date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
     }
 });
 </script>

@@ -21,6 +21,7 @@ return [
     'no_roles'                      => 'No roles.',
     'example_role_placeholder'      => 'e.g.: SUPER ADMIN',
     'example_permission_placeholder'=> 'e.g.: view_dashboard',
+    'example_guard_placeholder'     => 'e.g.: web', 
     'name_label'                    => 'Name',
     'guard_label'                   => 'Guard',
     'created_at'                    => 'Created at',

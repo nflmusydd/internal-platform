@@ -6,8 +6,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ ucwords(__('general.internal_platform')) }}</title>
     <link rel="icon" type="image/png" href="{{ asset('images/mnm_logo.png') }}">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ asset('css/bootstrap/bootstrap-5.3.0.min.css') }}?v={{ filemtime(public_path('css/bootstrap/bootstrap-5.3.0.min.css')) }}">
+    <link rel="stylesheet" href="{{ asset('vendor/bootstrap-icons/font/bootstrap-icons.css') }}?v={{ filemtime(public_path('vendor/bootstrap-icons/font/bootstrap-icons.css')) }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -390,7 +390,7 @@
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
+    <script src="{{ asset('js/jquery/jquery-4.0.0.min.js') }}?v={{ filemtime(public_path('js/jquery/jquery-4.0.0.min.js')) }}"></script>
     <script>
     var switching = false;
 
@@ -554,7 +554,7 @@
             if (!valid) e.preventDefault();
         });
 
-        //  ==========================================
+        // ==========================================
         // CLEAR ERRORS on input
         // ==========================================
         $('#loginEmail').on('input', function() {

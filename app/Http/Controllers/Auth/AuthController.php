@@ -35,7 +35,7 @@ class AuthController extends Controller
 
         $credentials = $request->validate([
             'email' => ['required', 'email'],
-            'password' => ['required'],
+            'password' => ['required', 'string', 'min:8'],
         ]);
 
         $user = User::where('email', $request->email)->first();
@@ -68,7 +68,7 @@ class AuthController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'confirmed', 'min:8'],
+            'password' => ['required', 'string', 'confirmed', 'min:8'],
         ]);
 
         DB::beginTransaction();

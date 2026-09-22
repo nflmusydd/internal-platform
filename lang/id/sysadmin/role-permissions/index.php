@@ -21,6 +21,7 @@ return [
     'no_roles'                      => 'Tidak ada peran.',
     'example_role_placeholder'      => 'cth: SUPER ADMIN',
     'example_permission_placeholder'=> 'cth: view_dashboard',
+    'example_guard_placeholder'     => 'cth: web', 
     'name_label'                    => 'Nama',
     'guard_label'                   => 'Guard',
     'created_at'                    => 'Dibuat pada',

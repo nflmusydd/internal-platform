@@ -27,28 +27,22 @@ class BaseExport
 
     public function download($filename)
     {
-        $dir = public_path('exports');
+        $dir = storage_path('app/exports');
         if (!is_dir($dir)) {
             mkdir($dir, 0777, true);
         }
 
         $timestampedName = $filename . '_' . now()->format('Y-m-d_His');
         $tempPath = $dir . '/' . $timestampedName . '.xlsx';
+        
         $this->build($tempPath);
 
-        $fileToServe = $tempPath;
-
-        return response()->stream(function () use ($fileToServe) {
-            readfile($fileToServe);
-            flush();
-            @unlink($fileToServe);
-        }, 200, [
+        return response()->download($tempPath, $timestampedName . '.xlsx', [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-Disposition' => 'attachment; filename="' . $timestampedName . '.xlsx"',
             'Cache-Control' => 'no-cache, no-store, must-revalidate',
             'Pragma' => 'no-cache',
             'Expires' => '0',
-        ]);
+        ])->deleteFileAfterSend(true);
     }
 
     protected function build(string $path): void
