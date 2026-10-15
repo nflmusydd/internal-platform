@@ -85,7 +85,15 @@ Route::middleware('auth')->group(function () {
 
         // USER PERMISSION
         Route::prefix('user-permissions')->name('user_permissions.')->group(function(){
-            Route::resource('/', UserPermissionController::class);
+            Route::get('/ajax/users', [UserPermissionController::class, 'getUsers'])->name('ajax.users');
+            Route::get('/ajax/users/{id}/roles', [UserPermissionController::class, 'getUserRoles'])->name('ajax.user_roles');
+            Route::get('/ajax/users/{id}/permissions', [UserPermissionController::class, 'getUserPermissions'])->name('ajax.user_permissions');
+            Route::get('/ajax/roles/{id}', [UserPermissionController::class, 'getRolesForUser'])->name('ajax.roles_for_user');
+            Route::get('/ajax/permissions/{id}', [UserPermissionController::class, 'getPermissionsForUser'])->name('ajax.permissions_for_user');
+            Route::get('/ajax/export-users', [UserPermissionController::class, 'exportUsers'])->name('ajax.export_users');
+            Route::put('/ajax/users/{id}/sync-roles', [UserPermissionController::class, 'syncRoles'])->name('ajax.sync_roles');
+            Route::put('/ajax/users/{id}/sync-permissions', [UserPermissionController::class, 'syncPermissions'])->name('ajax.sync_permissions');
+            Route::resource('/', UserPermissionController::class)->only('index');
         });
     });
 

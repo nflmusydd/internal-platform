@@ -142,6 +142,8 @@ $(function() {
 
     function initMenusTable() {
         if (menusTable) { menusTable.ajax.reload(null, false); return; }
+        var useFixedColumns = window.matchMedia('(min-width: 768px)').matches;
+
         menusTable = IplatDataTable.init('#menusTable', {
             ajax: {
                 url: routes.menus,
@@ -187,7 +189,7 @@ $(function() {
                 { data: 'created_at', render: function(d) { return formatDateTime(d); }},
                 { data: 'updated_at', render: function(d) { return formatDateTime(d); }},
             ],
-            fixedColumns: { start: 2, end: 0 },
+            fixedColumns: useFixedColumns ? { start: 2, end: 0 } : { start: 1, end: 0 },
             columnDefs: [
                 { width: '20px', targets: 0 }
             ],

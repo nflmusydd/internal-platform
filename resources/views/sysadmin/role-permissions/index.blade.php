@@ -379,6 +379,8 @@ $(function() {
 
     function initRolesTable() {
         if (rolesTable) { rolesTable.ajax.reload(null, false); return; }
+        var useFixedColumns = window.matchMedia('(min-width: 768px)').matches;
+
         rolesTable = IplatDataTable.init('#rolesTable', {
             ajax: {
                 url: routes.roles,
@@ -398,26 +400,25 @@ $(function() {
                 { data: 'permissions_count', render: function(d, type, row) {
                     if (d === 0) return '<span class="text-muted">-</span>';
                     var label = d !== 1 ? lang.permissionCount.split('|')[1] : lang.permissionCount.split('|')[0];
-                    // return '<a href="javascript:void(0)" class="badge bg-info text-dark text-decoration-none" onclick="openBadgeList(\'permissions\', \'' + row.ulid + '\', \'' + escHtml(row.name) + '\')">' + label.replace(':count', d) + '</a>';
                     return '<a href="javascript:void(0)" class="badge bg-info text-dark text-decoration-none badge-list-btn" data-type="permissions" data-id="' + row.ulid + '" data-name="' + escHtml(row.name) + '">' + label.replace(':count', d) + '</a>';
                 }},
                 { data: 'users_count', render: function(d, type, row) {
                     if (d === 0) return '<span class="text-muted">-</span>';
                     var label = d !== 1 ? lang.usersCount.split('|')[1] : lang.usersCount.split('|')[0];
-                    // return '<a href="javascript:void(0)" class="badge bg-warning text-dark text-decoration-none" onclick="openBadgeList(\'users\', \'' + row.ulid + '\', \'' + escHtml(row.name) + '\')">' + label.replace(':count', d) + '</a>';
                     return '<a href="javascript:void(0)" class="badge bg-warning text-dark text-decoration-none badge-list-btn" data-type="users" data-id="' + row.ulid + '" data-name="' + escHtml(row.name) + '">' + label.replace(':count', d) + '</a>';
                 }},
-                { data: 'created_at', render: function(d) { return formatDateTime(d); }},
+                { data: 'created_at', render: function(d, type) { 
+                    if (type === 'display' || type === 'filter')
+                        return formatDateTime(d);
+                    return d; 
+                }},
                 { data: null, orderable: false, className: 'text-center', render: function(d) {
-                    // return '<button class="btn btn-sm btn-outline-primary me-1" onclick="openAssignPermModal(\'' + d.ulid + '\', \'' + escHtml(d.name) + '\')" title="' + lang.titleEdit + '"><i class="bi bi-shield-check"></i></button>' +
-                    //        '<button class="btn btn-sm btn-outline-warning me-1" onclick="openRoleModal(\'' + d.ulid + '\', \'' + escHtml(d.name) + '\', \'' + escHtml(d.guard_name) + '\')" title="' + lang.titleEdit + '"><i class="bi bi-pencil"></i></button>' +
-                    //        '<button class="btn btn-sm btn-outline-danger" onclick="deleteRole(\'' + d.ulid + '\')" title="' + lang.titleDelete + '"><i class="bi bi-trash"></i></button>';
                     return '<button class="btn btn-sm btn-outline-primary me-1 assign-perm-btn" data-id="' + d.ulid + '" data-name="' + escHtml(d.name) + '" title="' + lang.titleEdit + '"><i class="bi bi-shield-check"></i></button>' +
                             '<button class="btn btn-sm btn-outline-warning me-1 edit-role-btn" data-id="' + d.ulid + '" data-name="' + escHtml(d.name) + '" data-guard="' + escHtml(d.guard_name) + '" title="' + lang.titleEdit + '"><i class="bi bi-pencil"></i></button>' +
                             '<button class="btn btn-sm btn-outline-danger delete-role-btn" data-id="' + d.ulid + '" title="' + lang.titleDelete + '"><i class="bi bi-trash"></i></button>';
                 }}
             ],
-            fixedColumns: { start: 2, end: 0 },
+            fixedColumns: useFixedColumns ? { start: 2, end: 0 } : { start: 1, end: 0 },
             columnDefs: [
                 { width: '20px', targets: 0 }
             ],
@@ -442,6 +443,8 @@ $(function() {
 
     function initPermissionsTable() {
         if (permissionsTable) { permissionsTable.ajax.reload(null, false); return; }
+        var useFixedColumns = window.matchMedia('(min-width: 768px)').matches;
+        
         permissionsTable = IplatDataTable.init('#permissionsTable', {
             ajax: {
                 url: routes.permissions,
@@ -460,18 +463,19 @@ $(function() {
                 { data: 'guard_name', render: function(d) { return '<span class="badge bg-secondary">' + escHtml(d) + '</span>'; } },
                 { data: 'roles_count', render: function(d, type, row) {
                     if (d === 0) return '<span class="text-muted">-</span>';
-                    // return '<a href="javascript:void(0)" class="badge bg-warning text-dark text-decoration-none" onclick="openBadgeList(\'roles\', \'' + row.ulid + '\', \'' + escHtml(row.name) + '\')">' + d + ' ' + escHtml(lang.roles) + '</a>';
                     return '<a href="javascript:void(0)" class="badge bg-warning text-dark text-decoration-none badge-list-btn" data-type="roles" data-id="' + row.ulid + '" data-name="' + escHtml(row.name) + '">' + d + ' ' + escHtml(lang.roles) + '</a>';
                 }},
-                { data: 'created_at', render: function(d) { return formatDateTime(d); }},
+                { data: 'created_at', render: function(d, type) { 
+                    if (type === 'display' || type === 'filter')
+                        return formatDateTime(d);
+                    return d; 
+                }},
                 { data: null, orderable: false, className: 'text-center', render: function(d) {
-                    // return '<button class="btn btn-sm btn-outline-warning me-1" onclick="openPermissionModal(\'' + d.ulid + '\', \'' + escHtml(d.name) + '\', \'' + escHtml(d.guard_name) + '\')" title="' + lang.titleEdit + '"><i class="bi bi-pencil"></i></button>' +
-                    //        '<button class="btn btn-sm btn-outline-danger" onclick="deletePermission(\'' + d.ulid + '\')" title="' + lang.titleDelete + '"><i class="bi bi-trash"></i></button>';
                     return '<button class="btn btn-sm btn-outline-warning me-1 edit-perm-btn" data-id="' + d.ulid + '" data-name="' + escHtml(d.name) + '" data-guard="' + escHtml(d.guard_name) + '" title="' + lang.titleEdit + '"><i class="bi bi-pencil"></i></button>' +
                             '<button class="btn btn-sm btn-outline-danger delete-perm-btn" data-id="' + d.ulid + '" title="' + lang.titleDelete + '"><i class="bi bi-trash"></i></button>';
                 }}
             ],
-            fixedColumns: { start: 2, end: 0 },
+            fixedColumns: useFixedColumns ? { start: 2, end: 0 } : { start: 1, end: 0 },
             columnDefs: [
                 { width: '20px', targets: 0 }
             ],
@@ -680,7 +684,6 @@ $(function() {
     });
 
     window.deleteRole = function(id) {
-        // var row = rolesTable.row($('[onclick*="deleteRole(\'' + id + '\')"]').closest('tr'));
         var row = rolesTable.row($('.delete-role-btn[data-id="' + id + '"]').closest('tr'));
         var data = row.data();
         var cb = function() { if (rolesTable) rolesTable.ajax.reload(null, false); };
@@ -755,7 +758,6 @@ $(function() {
     });
 
     window.deletePermission = function(id) {
-        // var row = permissionsTable.row($('[onclick*="deletePermission(\'' + id + '\')"]').closest('tr'));
         var row = permissionsTable.row($('.delete-perm-btn[data-id="' + id + '"]').closest('tr'));
         var data = row.data();
         var cb = function() {

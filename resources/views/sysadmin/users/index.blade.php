@@ -242,8 +242,16 @@ $(function() {
                         ? '<span class="badge bg-success">' + lang.active + '</span>'
                         : '<span class="badge bg-danger">' + lang.inactive + '</span>';
                 }},
-                { data: 'created_at', render: function(d) { return formatDateTime(d); }},
-                { data: 'updated_at', render: function(d) { return formatDateTime(d); }},
+                { data: 'created_at', render: function(d, type) { 
+                    if (type === 'display' || type === 'filter')
+                        return formatDateTime(d);
+                    return d; 
+                }},
+                { data: 'updated_at', render: function(d, type) { 
+                    if (type === 'display' || type === 'filter')
+                        return formatDateTime(d);
+                    return d; 
+                }},
                 { data: null, orderable: false, className: 'text-center', render: function(d) {
                     var editBtn = '<button class="btn btn-sm btn-outline-warning me-1 edit-user-btn" data-id="' + d.ulid + '" title="' + lang.title_edit + '"><i class="bi bi-pencil"></i></button>';
                     if (d.ulid === currentUserId) {
