@@ -43,8 +43,9 @@
                 </ul>
             </div>
         </div>
-        <button id="addUserBtn" class="btn btn-sm fw-semibold" style="background-color:var(--primary-green);color:#fff;">
-            <i class="bi bi-plus-lg me-1"></i>{{ ucfirst(__('general.add')) }} {{ ucfirst(__('general.user')) }}
+        <button id="addUserBtn" class="btn btn-sm fw-semibold text-nowrap" style="background-color:var(--primary-green);color:#fff;">
+            <i class="bi bi-plus-lg"></i>
+            <span class="d-none d-md-inline ms-1">{{ ucfirst(__('general.add')) }} {{ ucfirst(__('general.user')) }}</span>
         </button>
     </div>
 
@@ -119,10 +120,11 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold text-primary-green" id="userModalTitle">
-                    <i class="bi bi-person-plus me-2"></i>{{ __('sysadmin/users/index.add_user') }}
+                <h5 class="modal-title fw-bold text-primary-green d-flex align-items-start" id="userModalTitle">
+                    <i class="bi bi-person-plus me-2 shrink-0"></i>
+                    <span>{{ __('sysadmin/users/index.add_user') }}</span>
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close align-self-start" data-bs-dismiss="modal"></button>
             </div>
             <form id="userForm" novalidate>
                 <div class="modal-body">
@@ -393,7 +395,10 @@ $(function() {
         $('#userId').val('');
         var isEdit = !!ulid;
 
-        $('#userModalTitle').html('<i class="bi bi-' + (isEdit ? 'pencil' : 'person-plus') + ' me-2"></i>' + (isEdit ? lang.edit_user : lang.add_user));
+        $('#userModalTitle').html(
+            '<i class="bi bi-' + (isEdit ? 'pencil' : 'person-plus') + ' me-2 shrink-0"></i>' + 
+            '<span>' + (isEdit ? lang.edit_user : lang.add_user) + '</span>'
+        );
 
         if (isEdit) {
             $.get(routes.users, function(res) {

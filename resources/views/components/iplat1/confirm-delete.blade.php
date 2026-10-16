@@ -2,10 +2,11 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
-<h5 class="modal-title fw-bold text-danger">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i><span id="confirmDeleteModalTitle">{{ ucfirst(__('general.confirm_delete_title')) }}</span>
+                <h5 class="modal-title fw-bold text-danger d-flex align-items-start">
+                    <i class="bi bi-exclamation-triangle-fill me-2 shrink-0"></i>
+                    <span id="confirmDeleteModalTitle">{{ ucfirst(__('general.confirm_delete_title')) }}</span>
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close align-self-start" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <p class="mb-0">{{ __('general.confirm_delete') }}</p>
@@ -25,10 +26,11 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
-<h5 class="modal-title fw-bold" style="color:#e67700;">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i><span id="confirmWarningModalTitle">{{ ucfirst(__('general.confirm_delete_title')) }}</span>
+                <h5 class="modal-title fw-bold text-danger d-flex align-items-start" style="color:#e67700;">
+                    <i class="bi bi-exclamation-triangle-fill me-2 shrink-0"></i>
+                    <span id="confirmWarningModalTitle">{{ ucfirst(__('general.confirm_delete_title')) }}</span>
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close align-self-start" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <p class="mb-0" id="confirmWarningMessage"></p>

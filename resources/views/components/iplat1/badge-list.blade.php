@@ -2,10 +2,11 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold text-primary-green">
-                    <i class="bi bi-tags me-2"></i><span id="badgeListModalTitle"></span>
+                <h5 class="modal-title fw-bold text-primary-green d-flex align-items-start">
+                    <i class="bi bi-tags me-2 shrink-0"></i>
+                    <span id="badgeListModalTitle"></span>
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close align-self-start" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div id="badgeListBody" class="border rounded p-3" style="max-height:400px;overflow-y:auto;overflow-x:hidden;"></div>
@@ -27,6 +28,9 @@
     .badge-list-item {
         max-width: 100%;
         overflow-wrap: break-word;
+    }
+    .badge-list-rows > .badge-list-row:last-child {
+        border-bottom: 0 !important;
     }
 </style>
 @endpush

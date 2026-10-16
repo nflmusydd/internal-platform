@@ -29,6 +29,16 @@ return [
     'failed_to_sync_permissions'    => 'Failed to sync permissions.',
     'permission_in_role'            => 'Permission ":permissions" cannot be added because :name already has it through their roles.',
 
+    'assigned_by'                   => 'Assigned by',
+    'assigned_at'                   => 'Assigned at',
+    'assigned_unknown'              => 'Unknown',
+    'assignment_meta'               => 'Added by :name · :date',
+    'view_role_permissions'         => 'View permissions in this role',
+    'loading_role_permissions'      => 'Loading permissions...',
+    'no_role_permissions'           => 'This role has no permissions.',
+    'role_permissions_label'        => 'Role permissions:',
+    'via_role_note'                 => 'Some permissions are already granted by this user\'s roles. Remove the role first to manage them here.',
+
     'filter_placeholder_name'       => 'Search name...',
     'filter_placeholder_email'      => 'Search email...',
     'filter_label_name'             => 'Name',

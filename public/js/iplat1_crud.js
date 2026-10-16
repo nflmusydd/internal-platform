@@ -48,8 +48,8 @@ var Iplat = (function () {
         };
         var html = '<div id="' + toastId + '" class="toast align-items-center text-bg-' + type + ' border-0" role="alert">' +
             '<div class="d-flex">' +
-            '<div class="toast-body"><i class="bi ' + (iconMap[type] || iconMap.info) + ' me-2"></i>' + message + '</div>' +
-            '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
+            '<div class="toast-body d-flex align-items-start"><i class="bi ' + (iconMap[type] || iconMap.info) + ' me-2 shrink-0"></i>' + message + '</div>' +
+            '<button type="button" class="btn-close btn-close-white me-2 m-auto shrink-0" data-bs-dismiss="toast"></button>' +
             '</div></div>';
 
         var positionMap = {
@@ -65,7 +65,7 @@ var Iplat = (function () {
         var $container = $('#' + containerId);
         if (!$container.length) {
             var posStyle = positionMap[position] || positionMap['top-right'];
-            $container = $('<div id="' + containerId + '" style="position:fixed;' + posStyle + 'z-index:9999;min-width:300px;"></div>').appendTo('body');
+            $container = $('<div id="' + containerId + '" style="position:fixed;' + posStyle + 'z-index:9999;min-width:250px;max-width:calc(100vw - 40px);"></div>').appendTo('body');
         }
 
         $container.empty();
@@ -118,13 +118,28 @@ var Iplat = (function () {
                 $body.html('<div class="text-center text-muted py-4">' + escHtml(emptyText || '') + '</div>');
                 return;
             }
-            if (cols) {
+            var hasMeta = items.some(function(item) {
+                return item && typeof item === 'object' && item.meta;
+            });
+            if (hasMeta && !cols) {
+                var html = items.map(function(item) {
+                    var isObj = typeof item === 'object' && item && item.name;
+                    var name = isObj ? escHtml(item.name) : escHtml(item);
+                    var meta = isObj && item.meta ? escHtml(item.meta) : '';
+                    return '<div class="d-flex justify-content-between align-items-start gap-3 border-bottom py-2 badge-list-row">' +
+                        '<div class="fw-semibold badge-list-cell">' + name + '</div>' +
+                        (meta ? '<div class="text-muted small text-end badge-list-cell">' + meta + '</div>' : '') +
+                        '</div>';
+                }).join('');
+                $body.html('<div class="badge-list-rows">' + html + '</div>');
+            } else if (cols) {
                 var colCls = 'col-md-' + Math.floor(12 / cols);
                 var html = items.map(function(item) {
                     var isObj = typeof item === 'object' && item && item.name;
                     var inner = isObj
                         ? '<div class="fw-semibold">' + escHtml(item.name) + '</div>' +
-                          (item.email ? '<div class="text-muted small">' + escHtml(item.email) + '</div>' : '')
+                          (item.email ? '<div class="text-muted small">' + escHtml(item.email) + '</div>' : '') +
+                          (item.meta ? '<div class="text-muted small">' + escHtml(item.meta) + '</div>' : '')
                         : escHtml(item);
                     return '<div class="col-12 ' + colCls + '"><div class="border rounded bg-light p-2 h-100 badge-list-cell">' + inner + '</div></div>';
                 }).join('');
@@ -135,6 +150,7 @@ var Iplat = (function () {
                         return '<span class="badge badge-list-item bg-light border text-dark p-3 me-1 mb-1 text-start">' +
                             escHtml(item.name) +
                             (item.email ? '<br><small class="text-muted">' + escHtml(item.email) + '</small>' : '') +
+                            (item.meta ? '<br><small class="text-muted">' + escHtml(item.meta) + '</small>' : '') +
                             '</span>';
                     }
                     return '<span class="badge badge-list-item bg-light border text-dark p-2 me-1 mb-1">' + escHtml(item) + '</span>';

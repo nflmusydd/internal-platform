@@ -29,6 +29,16 @@ return [
     'failed_to_sync_permissions'    => 'Gagal memperbarui hak akses.',
     'permission_in_role'            => 'Hak akses ":permissions" tidak bisa ditambahkan karena :name sudah memilikinya melalui perannya.',
 
+    'assigned_by'                   => 'Ditambahkan oleh',
+    'assigned_at'                   => 'Ditambahkan pada',
+    'assigned_unknown'              => 'Tidak diketahui',
+    'assignment_meta'               => 'Ditambahkan oleh :name · :date',
+    'view_role_permissions'         => 'Lihat hak akses pada peran ini',
+    'loading_role_permissions'      => 'Memuat hak akses...',
+    'no_role_permissions'           => 'Peran ini belum memiliki hak akses.',
+    'role_permissions_label'        => 'Hak akses peran:',
+    'via_role_note'                 => 'Hak akses yang tidak bisa diubah sudah terdapat pada peran pengguna ini. Hapus perannya terlebih dahulu untuk mengelolanya di sini.',
+
     'filter_placeholder_name'       => 'Cari nama...',
     'filter_placeholder_email'      => 'Cari email...',
     'filter_label_name'             => 'Nama',

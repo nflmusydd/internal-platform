@@ -110,10 +110,11 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold text-primary-green" id="assignRoleModalTitle">
-                    <i class="bi bi-person-check me-2"></i>{{ __('sysadmin/user-permissions/index.assign_roles') }}
+                <h5 class="modal-title fw-bold text-primary-green d-flex align-items-start" id="assignRoleModalTitle">
+                    <i class="bi bi-person-check me-2 shrink-0"></i>
+                    <span>{{ __('sysadmin/user-permissions/index.assign_roles') }}</span>
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close align-self-start" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="assignUserId">
@@ -137,13 +138,15 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold text-primary-green" id="assignPermModalTitle">
-                    <i class="bi bi-key me-2"></i>{{ __('sysadmin/user-permissions/index.assign_permissions') }}
+                <h5 class="modal-title fw-bold text-primary-green d-flex align-items-start" id="assignPermModalTitle">
+                    <i class="bi bi-key me-2 shrink-0"></i>
+                    <span>{{ __('sysadmin/user-permissions/index.assign_permissions') }}</span>
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close align-self-start" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="assignPermUserId">
+                <div id="assignPermNote" class="alert alert-info d-none py-2 px-3 small" role="alert"></div>
                 <div id="assignPermList" class="row" style="max-height:400px;overflow-y:auto;">
                     <div class="col-12 text-center py-3 text-muted">{{ __('sysadmin/user-permissions/index.loading_permissions') }}</div>
                 </div>
@@ -162,6 +165,27 @@
 @include('components.iplat1.confirm-delete')
 @include('components.iplat1.badge-list')
 
+@push('styles')
+<style>
+    .form-check-input {
+        border: 1px solid #6c757d;
+    }
+    .role-perm-toggle {
+        color: var(--primary-green) !important;
+    }
+    .role-perm-toggle:hover,
+    .role-perm-toggle:focus {
+        color: var(--primary-green-hover) !important;
+    }
+    .role-perm-preview {
+        overflow: hidden;
+    }
+    .role-perm-preview ul {
+        margin-bottom: 0;
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script>
 $(function() {
@@ -174,6 +198,7 @@ $(function() {
         exportUsers: '{{ route("sysadmin.user_permissions.ajax.export_users") }}',
         syncRoles: '{{ route("sysadmin.user_permissions.ajax.sync_roles", ":id") }}',
         syncPermissions: '{{ route("sysadmin.user_permissions.ajax.sync_permissions", ":id") }}',
+        rolePermissions: '{{ route("sysadmin.role_permissions.ajax.role_permissions", ":id") }}',
     };
 
     var lang = {
@@ -194,12 +219,27 @@ $(function() {
         countPermissions: @json(__('general.count_permissions')),
         active: @json(__('sysadmin/user-permissions/index.status_active')),
         inactive: @json(__('sysadmin/user-permissions/index.status_inactive')),
+        assignmentMeta: @json(__('sysadmin/user-permissions/index.assignment_meta')),
+        assignedUnknown: @json(__('sysadmin/user-permissions/index.assigned_unknown')),
+        viewRolePermissions: @json(__('sysadmin/user-permissions/index.view_role_permissions')),
+        loadingRolePermissions: @json(__('sysadmin/user-permissions/index.loading_role_permissions')),
+        noRolePermissions: @json(__('sysadmin/user-permissions/index.no_role_permissions')),
+        rolePermissionsLabel: @json(__('sysadmin/user-permissions/index.role_permissions_label')),
+        viaRoleNote: @json(__('sysadmin/user-permissions/index.via_role_note')),
     };
 
     function countLabel(tpl, count) {
         var parts = tpl.split('|');
         var label = count !== 1 ? parts[1] : parts[0];
         return escHtml(label.replace(':count', count));
+    }
+
+    // "Added by :name · :date" line, escaped (names may contain HTML).
+    function assignmentMeta(name, date) {
+        if (!date) return '';
+        return escHtml(lang.assignmentMeta
+            .replace(':name', name || lang.assignedUnknown)
+            .replace(':date', date));
     }
 
     // ==================== DATATABLES INIT ====================
@@ -336,7 +376,10 @@ $(function() {
     // ==================== ASSIGN ROLES ====================
     window.openAssignRoleModal = function(ulid, name) {
         $('#assignUserId').val(ulid);
-        $('#assignRoleModalTitle').html('<i class="bi bi-person-check me-2"></i>' + lang.assignRolesTo.replace(':name', escHtml(name)));
+        $('#assignRoleModalTitle').html(
+            '<i class="bi bi-person-check me-2 shrink-0"></i>' + 
+            '<span>' + lang.assignRolesTo.replace(':name', escHtml(name)) + '</span>'
+        );
 
         var $list = $('#assignRoleList').html('<div class="col-12 text-center py-3"><div class="spinner-border spinner-border-sm me-2"></div>' + escHtml(lang.loadingRoles) + '</div>');
 
@@ -344,17 +387,66 @@ $(function() {
             var roles = (res.data && res.data.roles) || [];
             var html = '';
             $.each(roles, function(i, role) {
-                html += '<div class="col-md-6 col-lg-4 mb-2">' +
-                    '<div class="form-check">' +
+                var meta = role.assigned ? assignmentMeta(role.assigned_by_name, role.assigned_at) : '';
+                html += '<div class="col-md-6 col-lg-6 mb-2">' +
+                    '<div class="d-flex align-items-center">' +
+                    '<div class="form-check flex-grow-1">' +
                     '<input class="form-check-input assign-role-check" type="checkbox" value="' + escHtml(role.name) + '" id="role_' + escHtml(role.ulid) + '"' + (role.assigned ? ' checked' : '') + '>' +
                     '<label class="form-check-label small" for="role_' + escHtml(role.ulid) + '">' + escHtml(role.name) + '</label>' +
-                    '</div></div>';
+                    '</div>' +
+                    '<button type="button" class="btn btn-link btn-sm p-0 ms-1 role-perm-toggle" data-role-id="' + escHtml(role.ulid) + '" aria-expanded="false" title="' + escHtml(lang.viewRolePermissions) + '">' +
+                    '<i class="bi bi-chevron-down"></i>' +
+                    '</button>' +
+                    '</div>' +
+                    // (meta ? '<div class="small text-muted ps-4">' + meta + '</div>' : '') +
+                    '<div class="role-perm-preview d-none small text-muted ps-4" data-role-id="' + escHtml(role.ulid) + '"></div>' +
+                    '</div>';
+                    
             });
             $list.html(html || '<div class="col-12 text-center py-3 text-muted">' + escHtml(lang.noRolesAvailable) + '</div>');
         });
 
         new bootstrap.Modal('#assignRoleModal').show();
     };
+
+    // Lazy-load a role's permissions for the inline preview inside the role modal.
+    $('#assignRoleList').on('click', '.role-perm-toggle', function() {
+        var $btn = $(this);
+        var $preview = $('#assignRoleList .role-perm-preview[data-role-id="' + $btn.data('role-id') + '"]');
+        var $icon = $btn.find('i');
+        var expanded = $btn.attr('aria-expanded') === 'true';
+
+        if (expanded) {
+            $btn.attr('aria-expanded', 'false');
+            $icon.removeClass('bi-chevron-up').addClass('bi-chevron-down');
+            $preview.stop(true, true).slideUp(160);
+            return;
+        }
+
+        $btn.attr('aria-expanded', 'true');
+        $icon.removeClass('bi-chevron-down').addClass('bi-chevron-up');
+
+        if ($preview.data('loaded')) {
+            $preview.stop(true, true).slideDown(160);
+            return;
+        }
+
+        $preview.removeClass('d-none').html('<span class="spinner-border spinner-border-sm me-1"></span>' + escHtml(lang.loadingRolePermissions)).hide().slideDown(160);
+
+        $.get(routes.rolePermissions.replace(':id', $btn.data('role-id')), function(res) {
+            var perms = (res.data && res.data.permissions) || [];
+            $preview.data('loaded', true);
+            if (!perms.length) {
+                $preview.html(escHtml(lang.noRolePermissions));
+                return;
+            }
+            // $preview.html('<div class="fw-semibold">' + escHtml(lang.rolePermissionsLabel) + '</div>' +
+            //     '<ul class="ps-3 mb-0">' + perms.map(function(p) { return '<li>' + escHtml(p) + '</li>'; }).join('') + '</ul>');
+            $preview.html('<ul class="ps-3 mb-0">' + perms.map(function(p) { return '<li>' + escHtml(p) + '</li>'; }).join('') + '</ul>');
+        }).fail(function() {
+            $preview.html(escHtml(lang.noRolePermissions));
+        });
+    });
 
     // ==================== ASSIGN ROLES SUBMIT ====================
     var originalAssignRoleSubmitHtml = $('#btnAssignRoleSubmit').html();
@@ -376,21 +468,44 @@ $(function() {
     // ==================== ASSIGN PERMISSIONS ====================
     window.openAssignPermModal = function(ulid, name) {
         $('#assignPermUserId').val(ulid);
-        $('#assignPermModalTitle').html('<i class="bi bi-key me-2"></i>' + lang.assignPermissionsTo.replace(':name', escHtml(name)));
+        $('#assignPermModalTitle').html(
+            '<i class="bi bi-key me-2"></i>' + 
+            '<span>' + lang.assignPermissionsTo.replace(':name', escHtml(name)) + '</span>'
+        );
+        $('#assignPermNote').addClass('d-none').text('');
 
         var $list = $('#assignPermList').html('<div class="col-12 text-center py-3"><div class="spinner-border spinner-border-sm me-2"></div>' + escHtml(lang.loadingPermissions) + '</div>');
 
         $.get(routes.permissionsForUser.replace(':id', ulid), function(res) {
             var permissions = (res.data && res.data.permissions) || [];
             var html = '';
+            var hasViaRole = false;
+            var disabledNames = [];
             $.each(permissions, function(i, perm) {
-                html += '<div class="col-md-6 col-lg-4 mb-2">' +
+                var disabled = perm.via_role;
+                var isChecked = perm.assigned || perm.via_role;     // aktifkan checkbox perm.via_role
+
+                if (perm.via_role) hasViaRole = true;
+                if (disabled) disabledNames.push(perm.name);
+                var meta = perm.assigned ? assignmentMeta(perm.assigned_by_name, perm.assigned_at) : '';
+                html += '<div class="col-md-6 col-lg-6 mb-2">' +
                     '<div class="form-check">' +
-                    '<input class="form-check-input assign-perm-check" type="checkbox" value="' + escHtml(perm.name) + '" id="uperm_' + escHtml(perm.ulid) + '"' + (perm.assigned ? ' checked' : '') + '>' +
-                    '<label class="form-check-label small" for="uperm_' + escHtml(perm.ulid) + '">' + escHtml(perm.name) + '</label>' +
-                    '</div></div>';
+                    '<input class="form-check-input assign-perm-check" type="checkbox" value="' + escHtml(perm.name) + '" id="uperm_' + escHtml(perm.ulid) + '"' + (isChecked ? ' checked' : '') + (disabled ? ' disabled' : '') + '>' +
+                    '<label class="form-check-label small' + (disabled ? ' text-muted' : '') + '" for="uperm_' + escHtml(perm.ulid) + '">' + escHtml(perm.name) + '</label>' +
+                    '</div>' +
+                    // (meta ? '<div class="small text-muted ps-4">' + meta + '</div>' : '') +
+                    '</div>';
             });
             $list.html(html || '<div class="col-12 text-center py-3 text-muted">' + escHtml(lang.noPermissionsAvailable) + '</div>');
+
+            $('#assignPermModal').data('disabledPermNames', disabledNames);
+
+            var $note = $('#assignPermNote');
+            if (hasViaRole) {
+                $note.text(lang.viaRoleNote).removeClass('d-none');
+            } else {
+                $note.addClass('d-none').text('');
+            }
         });
 
         new bootstrap.Modal('#assignPermModal').show();
@@ -400,8 +515,12 @@ $(function() {
     var originalAssignPermSubmitHtml = $('#btnAssignPermSubmit').html();
     $('#btnAssignPermSubmit').on('click', function() {
         var ulid = $('#assignPermUserId').val();
+        var blocked = $('#assignPermModal').data('disabledPermNames') || [];
         var permissions = [];
-        $('.assign-perm-check:checked').each(function() { permissions.push($(this).val()); });
+        $('.assign-perm-check:checked').not(':disabled').each(function() {
+            var name = $(this).val();
+            if (blocked.indexOf(name) === -1) permissions.push(name);
+        });
 
         $('#btnAssignPermSubmit').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>' + window.iplatTranslations.saving);
         Iplat.ajax(routes.syncPermissions.replace(':id', ulid), 'PUT', { permissions: permissions }, function(res) {

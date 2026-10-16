@@ -62,8 +62,9 @@
                         </ul>
                     </div>
                 </div>
-                <button id="addRoleBtn" class="btn btn-sm fw-semibold" style="background-color:var(--primary-green);color:#fff;">
-                    <i class="bi bi-plus-lg me-1"></i>{{ ucfirst(__('general.add')) }} {{ ucfirst(__('general.role')) }}
+                <button id="addRoleBtn" class="btn btn-sm fw-semibold text-nowrap" style="background-color:var(--primary-green);color:#fff;">
+                    <i class="bi bi-plus-lg"></i>
+                    <span class="d-none d-md-inline ms-1">{{ ucfirst(__('general.add')) }} {{ ucfirst(__('general.role')) }}</span>
                 </button>
             </div>
             @include('components.iplat1.search-filter', [
@@ -158,8 +159,9 @@
                         </ul>
                     </div>
                 </div>
-                <button id="addPermissionBtn" class="btn btn-sm fw-semibold" style="background-color:var(--primary-green);color:#fff;">
-                    <i class="bi bi-plus-lg me-1"></i>{{ ucfirst(__('general.add')) }} {{ ucwords(__('general.permission')) }}
+                <button id="addPermissionBtn" class="btn btn-sm fw-semibold text-nowrap" style="background-color:var(--primary-green);color:#fff;">
+                    <i class="bi bi-plus-lg"></i>
+                    <span class="d-none d-md-inline ms-1">{{ ucfirst(__('general.add')) }} {{ ucfirst(__('general.permission')) }}</span>
                 </button>
             </div>
             @include('components.iplat1.search-filter', [
@@ -223,10 +225,11 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold text-primary-green" id="roleModalTitle">
-                    <i class="bi bi-shield-lock me-2"></i>{{ __('sysadmin/role-permissions/index.add_role') }}
+                <h5 class="modal-title fw-bold text-primary-green d-flex align-items-start" id="roleModalTitle">
+                    <i class="bi bi-shield-lock me-2 shrink-0"></i>
+                    <span>{{ __('sysadmin/role-permissions/index.add_role') }}</span>
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close align-self-start" data-bs-dismiss="modal"></button>
             </div>
             <form id="roleForm" novalidate>
                 <div class="modal-body">
@@ -260,10 +263,11 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold text-primary-green" id="permissionModalTitle">
-                    <i class="bi bi-key me-2"></i>{{ __('sysadmin/role-permissions/index.add_permission') }}
+                <h5 class="modal-title fw-bold text-primary-green d-flex align-items-start" id="permissionModalTitle">
+                    <i class="bi bi-key me-2 shrink-0"></i>
+                    <span>{{ __('sysadmin/role-permissions/index.add_permission') }}</span>
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close align-self-start" data-bs-dismiss="modal"></button>
             </div>
             <form id="permissionForm" novalidate>
                 <div class="modal-body">
@@ -297,8 +301,9 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold text-primary-green" id="assignPermModalTitle">
-                    <i class="bi bi-shield-check me-2"></i>{{ ucfirst(__('general.assign_permissions')) }}
+                <h5 class="modal-title fw-bold text-primary-green d-flex align-items-start" id="assignPermModalTitle">
+                    <i class="bi bi-shield-check me-2 shrink-0"></i>
+                    <span>{{ ucfirst(__('general.assign_permissions')) }}</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -628,7 +633,10 @@ $(function() {
     window.openRoleModal = function(id, name, guard) {
         Iplat.resetModal('#roleModal');
         $('#roleId').val('');
-        $('#roleModalTitle').html('<i class="bi bi-shield-lock me-2"></i>' + (id ? lang.editRole : lang.addRole));
+        $('#roleModalTitle').html(
+            '<i class="bi bi-shield-lock me-2 shrink-0"></i>' + 
+            '<span>' + (id ? lang.editRole : lang.addRole) + '</span>'
+        );
         if (id) {
             $('#roleId').val(id);
             $('#roleName').val(name);
@@ -699,7 +707,11 @@ $(function() {
     window.openPermissionModal = function(id, name, guard) {
         Iplat.resetModal('#permissionModal');
         $('#permissionId').val('');
-        $('#permissionModalTitle').html('<i class="bi bi-key me-2"></i>' + (id ? lang.editPermission : lang.addPermission));
+        $('#permissionModalTitle').html(
+            '<i class="bi bi-key me-2 shrink-0"></i>' + 
+            '<span>' + (id ? lang.editPermission : lang.addPermission) + '</span>'
+        );
+
         if (id) {
             $('#permissionId').val(id);
             $('#permissionName').val(name);
@@ -785,7 +797,10 @@ $(function() {
     // ==================== ASSIGN PERMISSIONS ====================
     window.openAssignPermModal = function(roleId, roleName) {
         $('#assignRoleId').val(roleId);
-        $('#assignPermModalTitle').html('<i class="bi bi-shield-check me-2"></i>' + lang.assignPermissionsTo.replace(':name', '<span class="text-decoration">' + escHtml(roleName) + '</span>'));
+        $('#assignPermModalTitle').html(
+            '<i class="bi bi-shield-check me-2 shrink-0"></i>' + 
+            '<span>' + lang.assignPermissionsTo.replace(':name', '<span class="text-decoration">' + escHtml(roleName) + '</span>') + '</span>'
+        );
 
         var $list = $('#assignPermList').html('<div class="col-12 text-center py-3"><div class="spinner-border spinner-border-sm me-2"></div>' + lang.loading + '</div>');
 

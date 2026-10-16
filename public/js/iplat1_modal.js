@@ -1,42 +1,47 @@
 $(function () {
 
-    $(document).on('show.bs.modal', '.modal', function () {
-        var $dialog = $(this).find('.modal-dialog');
-        if ($dialog.data('original-centered')) {
-            $dialog.addClass('modal-dialog-centered');
-        }
-        $dialog.css({ position: '', left: '', top: '', margin: '' });
+    // Reset posisi ke tengah saat modal ditutup
+    $(document).on('hidden.bs.modal', '.modal', function () {
+        var $content = $(this).find('.modal-content');
+        $content.css({ transform: '' });
+        $content.removeData('pos-x').removeData('pos-y'); // Reset memori posisi
     });
 
+    // Logika Dragging
     $(document).on('mousedown', '.modal-header', function (e) {
-        var $dialog = $(this).closest('.modal-dialog');
-        var $modal = $dialog.closest('.modal');
+        var $content = $(this).closest('.modal-content');
+        
+        // Ambil posisi pergeseran sebelumnya (jika modal sudah pernah didrag)
+        var currentX = parseFloat($content.data('pos-x')) || 0;
+        var currentY = parseFloat($content.data('pos-y')) || 0;
 
-        if ($dialog.hasClass('modal-dialog-centered')) {
-            $dialog.data('original-centered', true);
-            $dialog.removeClass('modal-dialog-centered').css({
-                'margin-top': $modal.scrollTop() + 50 + 'px',
-                'align-self': 'flex-start'
-            });
-        }
+        // koordinat awal mouse saat diklik
+        var startX = e.pageX;
+        var startY = e.pageY;
 
-        var startX = e.pageX - $dialog.offset().left;
-        var startY = e.pageY - $dialog.offset().top;
+        $(this).css('cursor', 'move');
 
         $(document).on('mousemove.dragmodal', function (e) {
-            $dialog.css({
-                position: 'relative',
-                left: e.pageX - startX - $dialog.parent().offset().left + 'px',
-                top: e.pageY - startY - $dialog.parent().offset().top + 'px',
-                margin: '0'
+            // Hitung selisih jarak tarikan mouse
+            var dx = e.pageX - startX;
+            var dy = e.pageY - startY;
+
+            // Geser modal menggunakan CSS Transform (GPU Accelerated & sangat smooth)
+            $content.css({
+                transform: 'translate(' + (currentX + dx) + 'px, ' + (currentY + dy) + 'px)'
             });
         });
 
-        $(document).one('mouseup', function () {
-            $(document).off('mousemove.dragmodal');
+        // Saat klik dilepas
+        $(document).one('mouseup', function (e) {
+            $(document).off('mousemove.dragmodal'); // Hapus event mousemove
+            
+            // Simpan posisi terakhir ke memori
+            var dx = e.pageX - startX;
+            var dy = e.pageY - startY;
+            $content.data('pos-x', currentX + dx);
+            $content.data('pos-y', currentY + dy);
         });
-
-        e.preventDefault();
     });
 
 });
