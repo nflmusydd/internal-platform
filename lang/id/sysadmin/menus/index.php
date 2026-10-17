@@ -9,7 +9,6 @@ return [
     'slug_label'              => 'Slug',
     'parent_label'            => 'Induk',
     'route_label'             => 'Nama Route',
-    'permission_label'        => 'Hak Akses',
     'order_label'             => 'Urutan',
     'status_label'            => 'Status',
     'active'                  => 'Aktif',

@@ -49,7 +49,6 @@ dipakai ulang (mis. oleh command lain), sedangkan command hanya lapisan presenta
 | `icon` | path view blade, mis. `resources/views/layouts/menu_icons/sysadmin.blade.php` |
 | `order` | urutan |
 | `is_active` | boolean |
-| `permission_name` | nama permission Spatie (disiapkan untuk filter berbasis permission) |
 | `created_at`, `created_by`, `updated_at`, `updated_by` | kolom audit |
 
 Constraint:
@@ -79,7 +78,7 @@ Perilaku per entri katalog:
 - **Delete** — setiap baris DB yang slug-nya **tidak** ada di katalog akan dihapus.
 
 Field yang dibandingkan: `parent_id`, `name_en`, `name_id`, `route_name`, `icon`, `order`,
-`is_active`, `permission_name`.
+`is_active`.
 
 Seluruh proses berjalan dalam transaksi; jika gagal akan rollback dan dicatat ke
 `Log::error('MENU SYNC: Process Failed')`.
@@ -160,7 +159,6 @@ docker exec app php artisan menu:sync
        'parent_slug' => 'sysadmin',         // null untuk menu top-level
        'order' => 5,                        // unik di antara sibling
        'is_active' => true,
-       'permission_name' => 'view_sysadmin_reports',
    ],
    ```
 
@@ -200,8 +198,10 @@ docker exec app php artisan menu:sync
   child (sub-menu), selain itu sebagai link tunggal.
 - Komponen breadcrumb (`components.iplat1.breadcrumb`) juga membaca tabel `menus`,
   berdasarkan slug group.
-- Filter sidebar berbasis permission (Spatie `permission_name`) saat ini masih
-  dikomentari; semua menu aktif ditampilkan.
+- Filter sidebar berbasis permission kini **aktif**: composer menyaring menu dengan
+  `RoutePermission::allows()` (nama route → permission lewat konvensi). Lihat
+  [`route-permissions.id.md`](./route-permissions.id.md). Kolom legacy `menus.permission_name`
+  sudah **dihapus**; filter murni berdasarkan `route_name`.
 
 ## 8. Halaman admin (singkat)
 

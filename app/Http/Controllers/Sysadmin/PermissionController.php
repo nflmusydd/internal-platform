@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Sysadmin;
 use App\Http\Controllers\Controller;
 use App\Models\Permission;
 use App\Exports\PermissionsExport;
+use App\Support\RoutePermission;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Spatie\Permission\PermissionRegistrar;
 
 class PermissionController extends Controller
 {
@@ -20,7 +22,7 @@ class PermissionController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:30|unique:permissions,name',
+            'name' => 'required|string|max:125|unique:permissions,name',
             'guard_name' => 'required|string|max:20',
         ]);
 
@@ -29,11 +31,12 @@ class PermissionController extends Controller
             $permission = Permission::create([
                 'name' => trim($validated['name']),
                 'guard_name' => trim($validated['guard_name']),
+                'is_generated' => false,
                 'created_by' => auth()->id(),
                 'updated_by' => auth()->id(),
             ]);
 
-            app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+            app(PermissionRegistrar::class)->forgetCachedPermissions();
 
             DB::commit();
             return response()->json([
@@ -56,9 +59,13 @@ class PermissionController extends Controller
         $permission = Permission::where('ulid', $id)->firstOrFail();
 
         $validated = $request->validate([
-            'name' => 'required|string|max:30|unique:permissions,name,' . $id . ',ulid',
+            'name' => 'required|string|max:125|unique:permissions,name,' . $id . ',ulid',
             'guard_name' => 'required|string|max:20',
         ]);
+
+        if ($this->isRoutePermission($permission) && trim($validated['name']) !== $permission->name) {
+            return $this->routePermissionLocked($permission->name);
+        }
 
         if ($permission->name === $validated['name'] && $permission->guard_name === $validated['guard_name']) {
             return response()->json([
@@ -76,7 +83,7 @@ class PermissionController extends Controller
                 'updated_by' => auth()->id(),
             ]);
 
-            app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+            app(PermissionRegistrar::class)->forgetCachedPermissions();
 
             DB::commit();
             return response()->json([
@@ -98,12 +105,16 @@ class PermissionController extends Controller
     {
         $permission = Permission::where('ulid', $id)->firstOrFail();
 
+        if ($this->isRoutePermission($permission)) {
+            return $this->routePermissionLocked($permission->name);
+        }
+
         DB::beginTransaction();
         try {
             $permission->roles()->detach();
             $permission->delete();
 
-            app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+            app(PermissionRegistrar::class)->forgetCachedPermissions();
 
             DB::commit();
             return response()->json([
@@ -118,6 +129,19 @@ class PermissionController extends Controller
                 'message' => ucfirst(__('general.failed_to_delete'))
             ], 500);
         }
+    }
+
+    private function isRoutePermission(Permission $permission): bool
+    {
+        return in_array($permission->name, RoutePermission::permissions(), true);
+    }
+
+    private function routePermissionLocked(string $name)
+    {
+        return response()->json([
+            'success' => false,
+            'message' => ucfirst(__('sysadmin/role-permissions/index.permission_locked_route', ['name' => $name])),
+        ], 422);
     }
 
     public function getAll()
@@ -153,6 +177,9 @@ class PermissionController extends Controller
             } else {
                 $permissions->doesntHave('roles');
             }
+        }
+        if ($request->filled('type')) {
+            $permissions->where('is_generated', $request->type === '1');
         }
         if ($request->filled('created_at_from')) {
             $permissions->where('created_at', '>=', Carbon::createFromFormat('d/m/Y', $request->created_at_from)->startOfDay());

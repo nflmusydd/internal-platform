@@ -99,7 +99,6 @@ class MenuController extends Controller
                 'name_en' => $node->name_en,
                 'name_id' => $node->name_id,
                 'route_name' => $node->route_name,
-                'permission_name' => $node->permission_name,
                 'icon' => $node->icon,
                 'order' => $node->order,
                 'is_active' => (bool) $node->is_active,

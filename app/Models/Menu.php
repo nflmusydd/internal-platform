@@ -15,7 +15,7 @@ class Menu extends Model
     protected $fillable = [
         'ulid', 'slug', 'parent_id', 'name_en', 'name_id', 
         'route_name', 'icon', 'order', 'is_active', 
-        'permission_name', 'created_by', 'updated_by'
+        'created_by', 'updated_by'
     ];
 
     protected $casts = [

@@ -59,6 +59,7 @@ return [
     'failed_to_update'      => 'gagal memperbarui',
     'failed_to_delete'      => 'gagal menghapus',
     'no_changes'            => 'tidak ada perubahan',
+    'unauthorized'          => 'Anda tidak memiliki akses ke halaman atau aksi ini.',
     'saving'                => 'menyimpan...',
     'deleting'              => 'menghapus...',
     'loading'               => 'memuat...',

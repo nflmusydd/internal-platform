@@ -333,9 +333,9 @@
                     @endif
 
                     @if ($errors->any() && !old('name'))
-                        <div class="alert alert-danger">
-                            <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                            {{ $errors->first() }}
+                        <div class="alert alert-danger d-flex align-items-start">
+                            <i class="bi bi-exclamation-triangle-fill me-2 shrink-0"></i>
+                            <div> {{ $errors->first() }} </div>
                         </div>
                     @endif
 

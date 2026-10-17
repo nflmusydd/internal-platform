@@ -269,6 +269,11 @@ class UserPermissionController extends Controller
      *
      * Only the difference is attached/detached: rows that stay keep their
      * assignment metadata, only newly granted ones get a fresh `assigned_by`/`assigned_at`.
+     *
+     * Permissions that are also granted through a role ("both-state") are kept
+     * even when they are not in the request, so the disabled via-role checkbox in
+     * the UI can never silently remove a direct grant. Submitting a role-granted
+     * permission that the user does NOT hold directly is still rejected (422).
      */
     public function syncPermissions(Request $request, string $id)
     {
@@ -279,17 +284,20 @@ class UserPermissionController extends Controller
             'permissions.*' => 'string|exists:permissions,name',
         ]);
 
-        $permissions = Permission::where('guard_name', 'web')
+        $requested = Permission::where('guard_name', 'web')
             ->whereIn('name', collect($validated['permissions'] ?? [])->unique()->values()->all())
             ->get();
-        $names = $permissions->pluck('name')->all();
+        $requestedNames = $requested->pluck('name')->all();
 
-        // Cannot add a permission the user already has through their roles. Permissions
-        // that are already held directly (and happen to also be role-granted) are not a
-        // conflict — they are simply kept, so re-saving does not fail.
+        // Direct permissions the user holds right now, keyed by name => id.
+        $current = $user->permissions()->get();
+        $currentIdsByName = $current->pluck('id', 'name')->all();
+        $currentNames = array_keys($currentIdsByName);
+
         $viaRoles = $user->getPermissionsViaRoles()->pluck('name')->all();
-        $currentDirect = $user->permissions()->pluck('name')->all();
-        $conflict = array_values(array_diff(array_intersect($names, $viaRoles), $currentDirect));
+
+        // Cannot ADD a permission the user only holds through a role.
+        $conflict = array_values(array_diff(array_intersect($requestedNames, $viaRoles), $currentNames));
 
         if ($conflict) {
             return response()->json([
@@ -302,13 +310,20 @@ class UserPermissionController extends Controller
             ], 422);
         }
 
+        // A direct permission that is also granted through a role ("both-state")
+        // is redundant and immovable through this endpoint: it is always kept so
+        // re-saving never silently drops the direct grant (and its metadata).
+        $pinnedNames = array_values(array_intersect($currentNames, $viaRoles));
+        $desiredNames = array_values(array_unique(array_merge($requestedNames, $pinnedNames)));
+
         DB::beginTransaction();
         try {
-            $current = $user->permissions()->get();
-            $currentNames = $current->pluck('name')->sort()->values()->all();
-            $newNames = collect($names)->sort()->values()->all();
+            $currentSorted = $currentNames;
+            sort($currentSorted);
+            $desiredSorted = $desiredNames;
+            sort($desiredSorted);
 
-            if ($currentNames === $newNames) {
+            if ($currentSorted === $desiredSorted) {
                 DB::rollBack();
 
                 return response()->json([
@@ -318,11 +333,15 @@ class UserPermissionController extends Controller
                 ]);
             }
 
-            $currentIds = $current->pluck('id')->all();
-            $newIds = $permissions->pluck('id')->all();
+            $desiredIds = Permission::where('guard_name', 'web')
+                ->whereIn('name', $desiredNames)
+                ->pluck('id')
+                ->all();
 
-            $removeIds = array_values(array_diff($currentIds, $newIds));
-            $addIds = array_values(array_diff($newIds, $currentIds));
+            $currentIds = array_values($currentIdsByName);
+
+            $removeIds = array_values(array_diff($currentIds, $desiredIds));
+            $addIds = array_values(array_diff($desiredIds, $currentIds));
 
             if ($removeIds) {
                 $user->permissions()->detach($removeIds);

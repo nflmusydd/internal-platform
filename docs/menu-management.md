@@ -49,7 +49,6 @@ also being managed by a seeder: a re-sync would silently revert user edits.
 | `icon` | blade view path, e.g. `resources/views/layouts/menu_icons/sysadmin.blade.php` |
 | `order` | sort order |
 | `is_active` | boolean |
-| `permission_name` | Spatie permission name (reserved for permission-based filtering) |
 | `created_at`, `created_by`, `updated_at`, `updated_by` | audit columns |
 
 Constraints:
@@ -79,7 +78,7 @@ Behaviour per catalog entry:
 - **Delete** — any DB row whose slug is **not** in the catalog is deleted.
 
 Compared fields: `parent_id`, `name_en`, `name_id`, `route_name`, `icon`, `order`,
-`is_active`, `permission_name`.
+`is_active`.
 
 The whole operation runs in a transaction; any failure rolls back and logs to
 `Log::error('MENU SYNC: Process Failed')`.
@@ -160,7 +159,6 @@ docker exec app php artisan menu:sync
        'parent_slug' => 'sysadmin',         // null for a top-level menu
        'order' => 5,                        // unique among siblings
        'is_active' => true,
-       'permission_name' => 'view_sysadmin_reports',
    ],
    ```
 
@@ -200,8 +198,10 @@ docker exec app php artisan menu:sync
   menu has children, otherwise as a single link.
 - The breadcrumb component (`components.iplat1.breadcrumb`) also reads the `menus` table,
   keyed by a group slug.
-- Permission-based filtering of the sidebar (Spatie `permission_name`) is currently
-  commented out; all active menus are shown.
+- Permission-based filtering of the sidebar is now **enabled**: the composer filters menus
+  with `RoutePermission::allows()` (route name → permission by convention). See
+  [`route-permissions.md`](./route-permissions.md). The legacy `menus.permission_name`
+  column has been **removed**; filtering is driven purely by `route_name`.
 
 ## 8. Admin page (brief)
 

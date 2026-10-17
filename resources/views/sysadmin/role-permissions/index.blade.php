@@ -166,7 +166,7 @@
             </div>
             @include('components.iplat1.search-filter', [
                 'id' => 'permissions',
-                'maxCols' => 3,
+                'maxCols' => 2,
                 'filters' => [
                     [
                         'key' => 'name', 
@@ -191,6 +191,16 @@
                         ]
                     ],
                     [
+                        'key' => 'type',
+                        'type' => 'select',
+                        'label' => __('sysadmin/role-permissions/index.filter_label_type'),
+                        'placeholder' => ucfirst(__('general.all')),
+                        'options' => [
+                            '1' => __('sysadmin/role-permissions/index.type_generated'),
+                            '0' => __('sysadmin/role-permissions/index.type_manual'),
+                        ]
+                    ],
+                    [
                         'key' => 'created_at_from',
                         'type' => 'date',
                         'label' => __('sysadmin/role-permissions/index.filter_label_created_from'),
@@ -209,6 +219,7 @@
                         <th class="ps-3">No.</th>
                         <th>{{ ucfirst(__('general.name')) }}</th>
                         <th>{{ ucfirst(__('general.guard')) }}</th>
+                        <th>{{ ucfirst(__('sysadmin/role-permissions/index.type_label')) }}</th>
                         <th>{{ ucfirst(__('general.used_by')) }}</th>
                         <th>{{ ucfirst(__('sysadmin/role-permissions/index.created_at')) }}</th>
                         <th class="text-center">{{ ucfirst(__('general.actions')) }}</th>
@@ -370,6 +381,8 @@ $(function() {
         assignPermissionsTo: @json(__('sysadmin/role-permissions/index.assign_permissions_to')),
         titleEdit: @json(__('sysadmin/role-permissions/index.title_edit')),
         titleDelete: @json(__('sysadmin/role-permissions/index.title_delete')),
+        typeGenerated: @json(__('sysadmin/role-permissions/index.type_generated')),
+        typeManual: @json(__('sysadmin/role-permissions/index.type_manual')),
         warningRoleInUse: @json(__('sysadmin/role-permissions/index.warning_role_in_use')),
         warningPermissionInUse: @json(__('sysadmin/role-permissions/index.warning_permission_in_use')),
         validationRequired: @json(__('validation.required')),
@@ -466,6 +479,11 @@ $(function() {
                 { data: null, orderable: false, searchable: false, className: 'ps-3 text-muted', defaultContent: '' },
                 { data: 'name', className: 'fw-semibold', render: function(d) { return escHtml(d) } },
                 { data: 'guard_name', render: function(d) { return '<span class="badge bg-secondary">' + escHtml(d) + '</span>'; } },
+                { data: 'is_generated', render: function(d) {
+                    return d
+                        ? '<span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i class="bi bi-gear-fill me-1"></i>' + lang.typeGenerated + '</span>'
+                        : '<span class="badge bg-light text-dark border"><i class="bi bi-pencil me-1"></i>' + lang.typeManual + '</span>';
+                }},
                 { data: 'roles_count', render: function(d, type, row) {
                     if (d === 0) return '<span class="text-muted">-</span>';
                     return '<a href="javascript:void(0)" class="badge bg-warning text-dark text-decoration-none badge-list-btn" data-type="roles" data-id="' + row.ulid + '" data-name="' + escHtml(row.name) + '">' + d + ' ' + escHtml(lang.roles) + '</a>';
@@ -497,7 +515,7 @@ $(function() {
             id: 'permissions',
             table: permissionsTable,
             columnMap: { name: 1, guard: 2 },
-            customFilters: { inUse: true, created_at_from: true, created_at_to: true },
+            customFilters: { inUse: true, type: true, created_at_from: true, created_at_to: true },
             onStateChange: function(s) { window.filterState['permissions'] = s; }
         });
     }
@@ -539,6 +557,14 @@ $(function() {
         var rowData = api.row(dataIndex).data();
         if (val === '1') return rowData.roles_count > 0;
         if (val === '0') return rowData.roles_count === 0;
+        return true;
+    });
+
+    IplatFilter.registerCustomSearch('type', function (val, settings, data, dataIndex) {
+        var api = new $.fn.dataTable.Api(settings);
+        var rowData = api.row(dataIndex).data();
+        if (val === '1') return !!rowData.is_generated;
+        if (val === '0') return !rowData.is_generated;
         return true;
     });
 
@@ -740,9 +766,9 @@ $(function() {
             $name.addClass('is-invalid');
             $('#permissionNameError').text(lang.validationRequired.replace(':attribute', lang.attrName));
             valid = false;
-        } else if ($name.val().length > 30) {
+        } else if ($name.val().length > 125) {
             $name.addClass('is-invalid');
-            $('#permissionNameError').text(lang.validationMaxString.replace(':attribute', lang.attrName).replace(':max', '30'));
+            $('#permissionNameError').text(lang.validationMaxString.replace(':attribute', lang.attrName).replace(':max', '125'));
             valid = false;
         }
         if (!$guard.val().trim()) {

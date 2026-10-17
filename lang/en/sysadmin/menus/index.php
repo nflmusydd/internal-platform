@@ -9,7 +9,6 @@ return [
     'slug_label'              => 'Slug',
     'parent_label'            => 'Parent',
     'route_label'             => 'Route Name',
-    'permission_label'        => 'Permission',
     'order_label'             => 'Order',
     'status_label'            => 'Status',
     'active'                  => 'Active',

@@ -102,7 +102,6 @@
                 <th>{{ ucfirst(__('sysadmin/menus/index.slug_label')) }}</th>
                 <th>{{ ucfirst(__('sysadmin/menus/index.parent_label')) }}</th>
                 <th>{{ ucfirst(__('sysadmin/menus/index.route_label')) }}</th>
-                <th>{{ ucfirst(__('sysadmin/menus/index.permission_label')) }}</th>
                 <th>{{ ucfirst(__('sysadmin/menus/index.order_label')) }}</th>
                 <th>{{ ucfirst(__('sysadmin/menus/index.status_label')) }}</th>
                 <th>{{ ucfirst(__('sysadmin/menus/index.created_at')) }}</th>
@@ -171,9 +170,6 @@ $(function() {
                 }},
                 { data: 'route_name', render: function(d) {
                     return d ? '<code>' + escHtml(d) + '</code>' : '<span class="text-muted">-</span>';
-                }},
-                { data: 'permission_name', render: function(d) {
-                    return d ? '<span class="badge bg-light text-dark border">' + escHtml(d) + '</span>' : '<span class="text-muted">-</span>';
                 }},
                 { data: 'order', render: function(d, type, row) {
                     if (row.parent_id) {

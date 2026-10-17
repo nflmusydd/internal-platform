@@ -31,7 +31,6 @@ class MenuSynchronizer
                 'parent_slug' => null,
                 'order' => 1,
                 'is_active' => true,
-                'permission_name' => 'view_sysadmin',
             ],
             [
                 'slug' => 'sysadmin/menus',
@@ -42,7 +41,6 @@ class MenuSynchronizer
                 'parent_slug' => 'sysadmin',
                 'order' => 1,
                 'is_active' => true,
-                'permission_name' => 'view_sysadmin_menus',
             ],
             [
                 'slug' => 'sysadmin/users',
@@ -53,7 +51,6 @@ class MenuSynchronizer
                 'parent_slug' => 'sysadmin',
                 'order' => 2,
                 'is_active' => true,
-                'permission_name' => 'view_sysadmin_users',
             ],
             [
                 'slug' => 'sysadmin/role-permissions',
@@ -64,7 +61,6 @@ class MenuSynchronizer
                 'parent_slug' => 'sysadmin',
                 'order' => 3,
                 'is_active' => true,
-                'permission_name' => 'view_sysadmin_role_permissions',
             ],
             [
                 'slug' => 'sysadmin/user-permissions',
@@ -75,7 +71,6 @@ class MenuSynchronizer
                 'parent_slug' => 'sysadmin',
                 'order' => 4,
                 'is_active' => true,
-                'permission_name' => 'view_sysadmin_user_permissions',
             ],
             // ======================== DEVELOPMENT ========================
             [
@@ -87,7 +82,6 @@ class MenuSynchronizer
                 'parent_slug' => null,
                 'order' => 2,
                 'is_active' => true,
-                'permission_name' => 'view_development',
             ],
             [
                 'slug' => 'development/components',
@@ -98,7 +92,17 @@ class MenuSynchronizer
                 'parent_slug' => 'development',
                 'order' => 1,
                 'is_active' => true,
-                'permission_name' => 'view_development_components',
+            ],
+            // ======================== DEVELOPMENT — COMMAND ========================
+            [
+                'slug' => 'development/command',
+                'name_en' => 'Command',
+                'name_id' => 'Command',
+                'route_name' => 'development.command.index',
+                'icon' => 'resources/views/layouts/menu_icons/development_command.blade.php',
+                'parent_slug' => 'development',
+                'order' => 2,
+                'is_active' => true,
             ],
             // ======================== WORK CALENDAR ========================
             [
@@ -106,11 +110,21 @@ class MenuSynchronizer
                 'name_en' => 'Work Calendar',
                 'name_id' => 'Kalender Pekerjaan',
                 'route_name' => 'work_calendar.index',
-                'icon' => null,
+                'icon' => 'resources/views/layouts/menu_icons/work_calendar.blade.php',
                 'parent_slug' => null,
                 'order' => 3,
-                'is_active' => false,
-                'permission_name' => 'view_work_calendar',
+                'is_active' => true,
+            ],
+            // ======================== REPORTS ========================
+            [
+                'slug' => 'reports',
+                'name_en' => 'Reports',
+                'name_id' => 'Laporan',
+                'route_name' => 'reports.index',
+                'icon' => 'resources/views/layouts/menu_icons/report.blade.php',
+                'parent_slug' => null,
+                'order' => 4,
+                'is_active' => true,
             ],
         ];
     }
@@ -298,8 +312,7 @@ class MenuSynchronizer
                     || $existing->route_name !== $item['route_name']
                     || $existing->icon !== $item['icon']
                     || $existing->order != $item['order']
-                    || (bool) $existing->is_active !== (bool) $item['is_active']
-                    || $existing->permission_name !== $item['permission_name'];
+                    || (bool) $existing->is_active !== (bool) $item['is_active'];
 
                 if ($existing && ! $isChanged) {
                     $action = 'skip';
@@ -358,7 +371,6 @@ class MenuSynchronizer
                     'icon' => $item['icon'],
                     'order' => $item['order'],
                     'is_active' => $item['is_active'],
-                    'permission_name' => $item['permission_name'],
                 ];
 
                 $validator = Validator::make($data, [
@@ -378,7 +390,6 @@ class MenuSynchronizer
                         }),
                     ],
                     'is_active' => 'boolean',
-                    'permission_name' => 'nullable|string|max:255',
                 ]);
 
                 if ($validator->fails()) {

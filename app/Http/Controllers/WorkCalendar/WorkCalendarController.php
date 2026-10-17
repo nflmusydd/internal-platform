@@ -12,7 +12,7 @@ class WorkCalendarController extends Controller
      */
     public function index()
     {
-        //
+        return view('work_calendar.index');
     }
 
     /**

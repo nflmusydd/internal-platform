@@ -6,7 +6,7 @@
                     ->whereNull('route_name')
                     ->where('is_active', true)
                     ->first();
-    $childMenus = [];
+    $childMenus = collect();
     if ($parentMenu) {
         $childMenus = \App\Models\Menu::where('parent_id', $parentMenu->id)
                         ->where('is_active', true)

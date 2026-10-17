@@ -59,6 +59,7 @@ return [
     'failed_to_update'      => 'failed to update',
     'failed_to_delete'      => 'failed to delete',
     'no_changes'            => 'no changes',
+    'unauthorized'          => 'You do not have access to this page or action.',
     'saving'                => 'saving...',
     'deleting'              => 'deleting...',
     'loading'               => 'loading...',

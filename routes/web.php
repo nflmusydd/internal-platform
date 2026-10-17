@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Development\CommandController;
 use App\Http\Controllers\Development\ComponentController;
+use App\Http\Controllers\Report\ReportController;
 use App\Http\Controllers\Sysadmin\MenuController;
 use App\Http\Controllers\Sysadmin\PermissionController;
 use App\Http\Controllers\Sysadmin\RolePermissionController;
@@ -24,7 +26,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 // ===============
 //   PROTECTED
 // ===============
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'check.route.permission'])->group(function () {
 
     Route::get('/', function () {
         return view('layouts.iplat1_layout1');
@@ -104,6 +106,9 @@ Route::middleware('auth')->group(function () {
         Route::prefix('components')->name('components.')->group(function(){
             Route::resource('/', ComponentController::class);
         });
+        Route::prefix('command')->name('command.')->group(function(){
+            Route::resource('/', CommandController::class)->only('index');
+        });
     });
 
     // ==================
@@ -111,5 +116,12 @@ Route::middleware('auth')->group(function () {
     // ==================
     Route::prefix('work-calendar')->name('work_calendar.')->group(function(){
         Route::resource('/', WorkCalendarController::class);
+    });
+
+    // ===============
+    //     REPORTS
+    // ===============
+    Route::prefix('reports')->name('reports.')->group(function(){
+        Route::resource('/', ReportController::class)->only('index');
     });
 });
