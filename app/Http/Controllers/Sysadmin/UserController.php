@@ -47,7 +47,7 @@ class UserController extends Controller
                 'message' => ucfirst(__('general.successfully_created')),
                 'data' => $user,
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('User Store Error', ['message' => $e->getMessage()]);
             return response()->json([
@@ -119,7 +119,7 @@ class UserController extends Controller
                 'message' => ucfirst(__('general.successfully_updated')),
                 'data' => $user,
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('User Update Error', ['message' => $e->getMessage()]);
             return response()->json([
@@ -160,7 +160,7 @@ class UserController extends Controller
                 'success' => true,
                 'message' => ucfirst(__('general.successfully_deleted')),
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('User Delete Error', ['message' => $e->getMessage()]);
             return response()->json([

@@ -112,6 +112,7 @@ class RoutePermissionCoverageTest extends TestCase
             'export -> export' => ['sysadmin.users.ajax.export_users', 'sysadmin.users.export'],
             'sync -> edit' => ['sysadmin.role_permissions.ajax.sync_permissions', 'sysadmin.role_permissions.edit'],
             'sync roles -> edit' => ['sysadmin.user_permissions.ajax.sync_roles', 'sysadmin.user_permissions.edit'],
+            'permission users -> view' => ['sysadmin.permissions.ajax.permission_users', 'sysadmin.permissions.view'],
             'single segment' => ['locale', 'view'],
             'custom action falls back' => ['reports.download', 'reports.view'],
         ];

@@ -253,7 +253,7 @@ class UserPermissionController extends Controller
                 'success' => true,
                 'message' => ucfirst(__('sysadmin/user-permissions/index.roles_synced', ['name' => e($user->name)])),
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('UserPermission SyncRoles Error', ['message' => $e->getMessage()]);
 
@@ -360,7 +360,7 @@ class UserPermissionController extends Controller
                 'success' => true,
                 'message' => ucfirst(__('sysadmin/user-permissions/index.permissions_synced', ['name' => e($user->name)])),
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('UserPermission SyncPermissions Error', ['message' => $e->getMessage()]);
 

@@ -16,6 +16,7 @@ class PermissionsExport extends BaseExport
             ucwords(__('general.guard')),
             ucwords(__('sysadmin/role-permissions/index.type_label')),
             ucwords(__('general.used_by')),
+            '',
             ucwords(__('sysadmin/role-permissions/index.created_at')),
         ];
 
@@ -27,11 +28,12 @@ class PermissionsExport extends BaseExport
                 $perm->is_generated
                     ? __('sysadmin/role-permissions/index.type_generated')
                     : __('sysadmin/role-permissions/index.type_manual'),
-                $perm->roles_count,
+                $perm->roles_count . ' ' . __('general.roles'),
+                trans_choice(__('general.count_users'), $perm->users_count),
                 $perm->created_at ? $perm->created_at->format('d/m/Y H:i') : '-',
             ];
         })->toArray();
 
-        parent::__construct($rows, $title, $headers);
+        parent::__construct($rows, $title, $headers, [[4, 5]]);
     }
 }

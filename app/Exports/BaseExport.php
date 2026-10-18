@@ -2,12 +2,15 @@
 
 namespace App\Exports;
 
+use OpenSpout\Common\Entity\Cell;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Border;
 use OpenSpout\Common\Entity\Style\BorderName;
 use OpenSpout\Common\Entity\Style\BorderPart;
 use OpenSpout\Common\Entity\Style\BorderStyle;
 use OpenSpout\Common\Entity\Style\BorderWidth;
+use OpenSpout\Common\Entity\Style\CellAlignment;
+use OpenSpout\Common\Entity\Style\CellVerticalAlignment;
 use OpenSpout\Common\Entity\Style\Color;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
@@ -17,12 +20,22 @@ class BaseExport
     protected $data;
     protected $title;
     protected $headers;
+    protected $headerMerges;
+    protected $centerAllHeaders;
 
-    public function __construct($data, $title, $headers)
+    /**
+     * @param array<int, array{0: int, 1: int}> $headerMerges Column spans on the
+     *        header row (row 5), each entry being [fromColumn, toColumn] with
+     *        columns indexed from 0. Lets one header label span several body
+     *        columns without breaking alignment.
+     */
+    public function __construct($data, $title, $headers, array $headerMerges = [], bool $centerAllHeaders = false)
     {
         $this->data = $data;
         $this->title = $title;
         $this->headers = $headers;
+        $this->headerMerges = $headerMerges;
+        $this->centerAllHeaders = $centerAllHeaders;
     }
 
     public function download($filename)
@@ -74,7 +87,7 @@ class BaseExport
             fontName: 'Arial',
         );
 
-        $colHeaderStyle = new Style(
+        $colHeaderStyle = (new Style(
             fontBold: true,
             fontSize: 10,
             fontName: 'Arial',
@@ -86,7 +99,11 @@ class BaseExport
                 new BorderPart(name: BorderName::TOP, color: '000000', width: BorderWidth::THIN, style: BorderStyle::SOLID),
                 new BorderPart(name: BorderName::BOTTOM, color: '000000', width: BorderWidth::THIN, style: BorderStyle::SOLID),
             ),
-        );
+        ));
+
+        $colHeaderCenteredStyle = (clone $colHeaderStyle)
+            ->withCellAlignment(CellAlignment::CENTER)
+            ->withCellVerticalAlignment(CellVerticalAlignment::CENTER);
 
         $cellStyleBorder = new Style(
             fontSize: 10,
@@ -117,7 +134,30 @@ class BaseExport
 
         // Row 5: Column headers
         $headerValues = array_values($this->headers);
-        $writer->addRow(Row::fromValuesWithStyle($headerValues, $colHeaderStyle));
+        $headerCells = [];
+
+        foreach ($headerValues as $colIndex => $value) {
+            $isMerged = false;
+            foreach ($this->headerMerges as $span) {
+                // Cek apakah kolom ini berada di antara rentang merge [from, to]
+                if ($colIndex >= $span[0] && $colIndex <= $span[1]) {
+                    $isMerged = true;
+                    break;
+                }
+            }
+
+            // Jika $centerAllHeaders bernilai true ATAU kolom ini di-merge, jadikan centered
+            $shouldCenter = $this->centerAllHeaders || $isMerged;
+            $styleToUse = $shouldCenter ? $colHeaderCenteredStyle : $colHeaderStyle;
+            
+            $headerCells[] = Cell::fromValue($value, $styleToUse);
+        }
+        $writer->addRow(new Row($headerCells));
+
+        // Merge header cells (row 5) so one label can span several body columns.
+        foreach ($this->headerMerges as $span) {
+            $writer->getOptions()->mergeCells($span[0], 5, $span[1], 5);
+        }
 
         // Data rows
         foreach ($this->data as $record) {

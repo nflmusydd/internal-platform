@@ -13,7 +13,7 @@ var Iplat = (function () {
             type: method,
             data: data,
             dataType: 'json',
-            headers: { 'X-CSRF-TOKEN': headers },
+            headers: headers,
             success: function (response) {
                 if (onSuccess) onSuccess(response);
             },

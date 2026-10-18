@@ -2,28 +2,31 @@
 
 namespace App\Http\Controllers\Sysadmin;
 
+use App\Exports\PermissionsExport;
 use App\Http\Controllers\Controller;
 use App\Models\Permission;
-use App\Exports\PermissionsExport;
 use App\Support\RoutePermission;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 use Spatie\Permission\PermissionRegistrar;
 
 class PermissionController extends Controller
 {
     public function index()
     {
-        return view('sysadmin.role-permissions.index');
+        $guards = array_keys(config('auth.guards'));
+
+        return view('sysadmin.permissions.index', compact('guards'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:125|unique:permissions,name',
-            'guard_name' => 'required|string|max:20',
+            'guard_name' => ['required', 'string', 'max:20', Rule::in(array_keys(config('auth.guards')))],
         ]);
 
         DB::beginTransaction();
@@ -39,17 +42,19 @@ class PermissionController extends Controller
             app(PermissionRegistrar::class)->forgetCachedPermissions();
 
             DB::commit();
+
             return response()->json([
                 'success' => true,
                 'message' => ucfirst(__('general.successfully_created')),
                 'data' => $permission,
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Permission Store Error', ['message' => $e->getMessage()]);
+
             return response()->json([
-                'success' => false, 
-                'message' => ucfirst(__('general.failed_to_save'))
+                'success' => false,
+                'message' => ucfirst(__('general.failed_to_save')),
             ], 500);
         }
     }
@@ -59,8 +64,8 @@ class PermissionController extends Controller
         $permission = Permission::where('ulid', $id)->firstOrFail();
 
         $validated = $request->validate([
-            'name' => 'required|string|max:125|unique:permissions,name,' . $id . ',ulid',
-            'guard_name' => 'required|string|max:20',
+            'name' => 'required|string|max:125|unique:permissions,name,'.$id.',ulid',
+            'guard_name' => ['required', 'string', 'max:20', Rule::in(array_keys(config('auth.guards')))],
         ]);
 
         if ($this->isRoutePermission($permission) && trim($validated['name']) !== $permission->name) {
@@ -86,17 +91,19 @@ class PermissionController extends Controller
             app(PermissionRegistrar::class)->forgetCachedPermissions();
 
             DB::commit();
+
             return response()->json([
                 'success' => true,
                 'message' => ucfirst(__('general.successfully_updated')),
                 'data' => $permission,
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Permission Update Error', ['message' => $e->getMessage()]);
+
             return response()->json([
-                'success' => false, 
-                'message' => ucfirst(__('general.failed_to_update'))
+                'success' => false,
+                'message' => ucfirst(__('general.failed_to_update')),
             ], 500);
         }
     }
@@ -117,18 +124,21 @@ class PermissionController extends Controller
             app(PermissionRegistrar::class)->forgetCachedPermissions();
 
             DB::commit();
+
             return response()->json([
                 'success' => true,
                 'message' => ucfirst(__('general.successfully_deleted')),
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Permission Delete Error', ['message' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
-                'message' => ucfirst(__('general.failed_to_delete'))
+                'message' => ucfirst(__('general.failed_to_delete')),
             ], 500);
         }
+
     }
 
     private function isRoutePermission(Permission $permission): bool
@@ -146,13 +156,15 @@ class PermissionController extends Controller
 
     public function getAll()
     {
-        $permissions = Permission::withCount('roles')->orderBy('name')->get();
+        $permissions = Permission::withCount('roles', 'users')->orderBy('name')->get();
+
         return response()->json(['data' => $permissions]);
     }
 
     public function getPermissionRoles(string $id)
     {
         $permission = Permission::where('ulid', $id)->firstOrFail();
+
         return response()->json([
             'data' => [
                 'permission' => $permission->name,
@@ -161,12 +173,27 @@ class PermissionController extends Controller
         ]);
     }
 
+    public function getPermissionUsers(string $id)
+    {
+        $permission = Permission::with('users')->where('ulid', $id)->firstOrFail();
+        $items = $permission->users->sortBy('name')->values()->map(function ($user) {
+            return ['name' => $user->name, 'email' => $user->email];
+        });
+
+        return response()->json([
+            'data' => [
+                'permission' => $permission->name,
+                'items' => $items,
+            ],
+        ]);
+    }
+
     public function exportPermissions(Request $request)
     {
-        $permissions = Permission::withCount('roles');
+        $permissions = Permission::withCount('roles', 'users');
 
         if ($request->filled('name')) {
-            $permissions->where('name', 'LIKE', '%' . $request->name . '%');
+            $permissions->where('name', 'LIKE', '%'.$request->name.'%');
         }
         if ($request->filled('guard')) {
             $permissions->where('guard_name', $request->guard);
@@ -176,6 +203,13 @@ class PermissionController extends Controller
                 $permissions->has('roles');
             } else {
                 $permissions->doesntHave('roles');
+            }
+        }
+        if ($request->filled('usedByUsers')) {
+            if ($request->usedByUsers === '1') {
+                $permissions->has('users');
+            } else {
+                $permissions->doesntHave('users');
             }
         }
         if ($request->filled('type')) {
@@ -189,6 +223,7 @@ class PermissionController extends Controller
         }
 
         $permissions = $permissions->orderBy('name')->get();
+
         return (new PermissionsExport($permissions))->download('permissions');
     }
 }

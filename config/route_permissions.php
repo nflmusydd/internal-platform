@@ -91,6 +91,7 @@ return [
         'roles_for_user',
         'permissions_for_user',
         'permission_roles',
+        'permission_users',
     ],
 
     /*

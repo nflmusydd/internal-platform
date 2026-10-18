@@ -455,7 +455,7 @@ class MenuSynchronizer
                 'skipped' => $skippedSlugs,
                 'deleted' => $deletedSlugs,
             ];
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('MENU SYNC'.': Process Failed', [
                 'message' => $e->getMessage(),

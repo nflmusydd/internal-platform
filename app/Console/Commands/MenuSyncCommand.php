@@ -28,7 +28,7 @@ class MenuSyncCommand extends Command
     {
         try {
             $result = MenuSynchronizer::sync();
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->error('An error occurred: ' . $e->getMessage());
 
             return self::FAILURE;

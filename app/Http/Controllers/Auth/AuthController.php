@@ -86,7 +86,7 @@ class AuthController extends Controller
 
             DB::commit();
             return redirect('/login')->with('success', __('auth.register_success'));
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Register Error', ['message' => $e->getMessage()]);
             return back()->withErrors(['email' => __('auth.register_failed')])->onlyInput('email');

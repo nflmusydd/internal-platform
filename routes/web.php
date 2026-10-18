@@ -79,6 +79,7 @@ Route::middleware(['auth', 'check.route.permission'])->group(function () {
         Route::prefix('permissions')->name('permissions.')->group(function(){
             Route::get('/ajax/all', [PermissionController::class, 'getAll'])->name('ajax.all');
             Route::get('/ajax/permissions/{id}/roles', [PermissionController::class, 'getPermissionRoles'])->name('ajax.permission_roles');
+            Route::get('/ajax/permissions/{id}/users', [PermissionController::class, 'getPermissionUsers'])->name('ajax.permission_users');
             Route::get('/ajax/export-permissions', [PermissionController::class, 'exportPermissions'])->name('ajax.export_permissions');
             Route::post('/ajax', [PermissionController::class, 'store'])->name('ajax.store');
             Route::put('/ajax/{id}', [PermissionController::class, 'update'])->name('ajax.update');

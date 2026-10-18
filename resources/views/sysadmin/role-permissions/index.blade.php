@@ -180,6 +180,16 @@
                         'label' => __('sysadmin/role-permissions/index.filter_label_guard'),
                         'placeholder' => ucfirst(__('general.all'))
                     ],
+                    // [
+                    //     'key' => 'type',
+                    //     'type' => 'select',
+                    //     'label' => __('sysadmin/role-permissions/index.filter_label_type'),
+                    //     'placeholder' => ucfirst(__('general.all')),
+                    //     'options' => [
+                    //         '1' => __('sysadmin/role-permissions/index.type_generated'),
+                    //         '0' => __('sysadmin/role-permissions/index.type_manual'),
+                    //     ]
+                    // ],
                     [
                         'key' => 'inUse', 
                         'type' => 'select', 
@@ -188,16 +198,17 @@
                         'options' => [
                             '1' => __('sysadmin/role-permissions/index.filter_yes'),
                             '0' => __('sysadmin/role-permissions/index.filter_no'),
-                        ]
+                        ],
+                        'newRow' => true,
                     ],
                     [
-                        'key' => 'type',
+                        'key' => 'usedByUsers',
                         'type' => 'select',
-                        'label' => __('sysadmin/role-permissions/index.filter_label_type'),
-                        'placeholder' => ucfirst(__('general.all')),
+                        'label' => __('sysadmin/role-permissions/index.filter_label_used_by_users'),
+                        'placeholder' => ucfirst(__('general.yes')) . ' ' . __('general.and') . ' ' . ucfirst(__('general.no')),
                         'options' => [
-                            '1' => __('sysadmin/role-permissions/index.type_generated'),
-                            '0' => __('sysadmin/role-permissions/index.type_manual'),
+                            '1' => __('sysadmin/role-permissions/index.filter_yes'),
+                            '0' => __('sysadmin/role-permissions/index.filter_no'),
                         ]
                     ],
                     [
@@ -252,9 +263,19 @@
                         <div class="invalid-feedback" id="roleNameError"></div>
                     </div>
                     <div class="mb-3">
-                        <label for="roleGuard" class="form-label fw-semibold small">{{ __('sysadmin/role-permissions/index.guard_label') }} <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="roleGuard" name="guard_name" placeholder="{{ __('sysadmin/role-permissions/index.example_guard_placeholder') }}"
-                                value="web" required>
+                        <label class="form-label fw-semibold small">{{ __('sysadmin/role-permissions/index.guard_label') }} <span class="text-danger">*</span></label>
+                        <div class="dropdown custom-filter-dropdown">
+                            <button class="filter-dropdown-toggle dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-chevron-down filter-dropdown-icon"></i>
+                                <span class="filter-dropdown-text" id="roleGuardText">web</span>
+                            </button>
+                            <ul class="dropdown-menu shadow-sm">
+                                @foreach($guards as $g)
+                                    <li><a class="dropdown-item" href="javascript:void(0)" data-value="{{ $g }}">{{ $g }}</a></li>
+                                @endforeach
+                            </ul>
+                            <input type="hidden" name="guard_name" id="roleGuard" value="web">
+                        </div>
                         <div class="invalid-feedback" id="roleGuardError"></div>
                     </div>
                 </div>
@@ -290,9 +311,19 @@
                         <div class="invalid-feedback" id="permissionNameError"></div>
                     </div>
                     <div class="mb-3">
-                        <label for="permissionGuard" class="form-label fw-semibold small">{{ __('sysadmin/role-permissions/index.guard_label') }} <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="permissionGuard" name="guard_name" placeholder="{{ __('sysadmin/role-permissions/index.example_guard_placeholder') }}", 
-                                value="web" required>
+                        <label class="form-label fw-semibold small">{{ __('sysadmin/role-permissions/index.guard_label') }} <span class="text-danger">*</span></label>
+                        <div class="dropdown custom-filter-dropdown">
+                            <button class="filter-dropdown-toggle dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-chevron-down filter-dropdown-icon"></i>
+                                <span class="filter-dropdown-text" id="permissionGuardText">web</span>
+                            </button>
+                            <ul class="dropdown-menu shadow-sm">
+                                @foreach($guards as $g)
+                                    <li><a class="dropdown-item" href="javascript:void(0)" data-value="{{ $g }}">{{ $g }}</a></li>
+                                @endforeach
+                            </ul>
+                            <input type="hidden" name="guard_name" id="permissionGuard" value="web">
+                        </div>
                         <div class="invalid-feedback" id="permissionGuardError"></div>
                     </div>
                 </div>
@@ -347,6 +378,7 @@ $(function() {
         rolePermissions: '{{ route("sysadmin.role_permissions.ajax.role_permissions", ":id") }}',
         roleUsers: '{{ route("sysadmin.role_permissions.ajax.role_users", ":id") }}',
         permissionRoles: '{{ route("sysadmin.permissions.ajax.permission_roles", ":id") }}',
+        permissionUsers: '{{ route("sysadmin.permissions.ajax.permission_users", ":id") }}',
         syncPermissions: '{{ route("sysadmin.role_permissions.ajax.sync_permissions", ":id") }}',
         permissions: '{{ route("sysadmin.permissions.ajax.all") }}',
         exportPermissions: '{{ route("sysadmin.permissions.ajax.export_permissions") }}',
@@ -387,8 +419,10 @@ $(function() {
         warningPermissionInUse: @json(__('sysadmin/role-permissions/index.warning_permission_in_use')),
         validationRequired: @json(__('validation.required')),
         validationMaxString: @json(__('validation.max.string')),
+        validationSelectedInvalid: @json(__('validation.in')),
         attrName: @json(__('validation.attributes.name')),
         attrGuardName: @json(__('validation.attributes.guard')),
+        registeredGuards: @json(array_keys(config('auth.guards'))),
     };
 
     // ==================== DATATABLES INIT ====================
@@ -485,8 +519,17 @@ $(function() {
                         : '<span class="badge bg-light text-dark border"><i class="bi bi-pencil me-1"></i>' + lang.typeManual + '</span>';
                 }},
                 { data: 'roles_count', render: function(d, type, row) {
-                    if (d === 0) return '<span class="text-muted">-</span>';
-                    return '<a href="javascript:void(0)" class="badge bg-warning text-dark text-decoration-none badge-list-btn" data-type="roles" data-id="' + row.ulid + '" data-name="' + escHtml(row.name) + '">' + d + ' ' + escHtml(lang.roles) + '</a>';
+                    if (type === 'sort') return d;
+                    var parts = [];
+                    if (d > 0) {
+                        parts.push('<a href="javascript:void(0)" class="badge bg-info text-dark text-decoration-none badge-list-btn" data-type="roles" data-id="' + row.ulid + '" data-name="' + escHtml(row.name) + '">' + d + ' ' + escHtml(lang.roles) + '</a>');
+                    }
+                    if (row.users_count > 0) {
+                        var label = row.users_count !== 1 ? lang.usersCount.split('|')[1] : lang.usersCount.split('|')[0];
+                        parts.push('<a href="javascript:void(0)" class="badge bg-warning text-dark text-decoration-none badge-list-btn" data-type="permission_users" data-id="' + row.ulid + '" data-name="' + escHtml(row.name) + '">' + label.replace(':count', row.users_count) + '</a>');
+                    }
+                    if (parts.length === 0) return '<span class="text-muted">-</span>';
+                    return parts.join(' ');
                 }},
                 { data: 'created_at', render: function(d, type) { 
                     if (type === 'display' || type === 'filter')
@@ -515,7 +558,7 @@ $(function() {
             id: 'permissions',
             table: permissionsTable,
             columnMap: { name: 1, guard: 2 },
-            customFilters: { inUse: true, type: true, created_at_from: true, created_at_to: true },
+            customFilters: { inUse: true, usedByUsers: true, type: true, created_at_from: true, created_at_to: true },
             onStateChange: function(s) { window.filterState['permissions'] = s; }
         });
     }
@@ -557,6 +600,14 @@ $(function() {
         var rowData = api.row(dataIndex).data();
         if (val === '1') return rowData.roles_count > 0;
         if (val === '0') return rowData.roles_count === 0;
+        return true;
+    });
+
+    IplatFilter.registerCustomSearch('usedByUsers', function (val, settings, data, dataIndex) {
+        var api = new $.fn.dataTable.Api(settings);
+        var rowData = api.row(dataIndex).data();
+        if (val === '1') return rowData.users_count > 0;
+        if (val === '0') return rowData.users_count === 0;
         return true;
     });
 
@@ -656,6 +707,20 @@ $(function() {
     });
 
     // ==================== ROLES ====================
+    function setRoleGuardDropdown(val) {
+        val = String(val);
+        var $dropdown = $('#roleGuard').closest('.dropdown');
+        if (val && $dropdown.find('.dropdown-item[data-value="' + val + '"]').length === 0) {
+            $dropdown.find('.dropdown-menu').append(
+                $('<a>', { 'class': 'dropdown-item', href: 'javascript:void(0)', 'data-value': val, text: val })
+            );
+        }
+        $('#roleGuard').val(val);
+        $('#roleGuardText').text(val);
+        $dropdown.find('.dropdown-item').removeClass('active');
+        $dropdown.find('.dropdown-item[data-value="' + val + '"]').addClass('active');
+    }
+
     window.openRoleModal = function(id, name, guard) {
         Iplat.resetModal('#roleModal');
         $('#roleId').val('');
@@ -663,10 +728,10 @@ $(function() {
             '<i class="bi bi-shield-lock me-2 shrink-0"></i>' + 
             '<span>' + (id ? lang.editRole : lang.addRole) + '</span>'
         );
+        setRoleGuardDropdown(id ? guard : 'web');
         if (id) {
             $('#roleId').val(id);
             $('#roleName').val(name);
-            $('#roleGuard').val(guard);
         }
         new bootstrap.Modal('#roleModal').show();
     };
@@ -684,7 +749,6 @@ $(function() {
         $('#roleNameError, #roleGuardError').text('');
 
         $name.val($name.val().trim());
-        $guard.val($guard.val().trim());
 
         var valid = true;
         if (!$name.val()) {
@@ -696,13 +760,13 @@ $(function() {
             $('#roleNameError').text(lang.validationMaxString.replace(':attribute', lang.attrName).replace(':max', '30'));
             valid = false;
         }
-        if (!$guard.val().trim()) {
+        if (!$guard.val()) {
             $guard.addClass('is-invalid');
             $('#roleGuardError').text(lang.validationRequired.replace(':attribute', lang.attrGuardName));
             valid = false;
-        } else if ($guard.val().length > 20) {
+        } else if (lang.registeredGuards.indexOf($guard.val()) === -1) {
             $guard.addClass('is-invalid');
-            $('#roleGuardError').text(lang.validationMaxString.replace(':attribute', lang.attrGuardName).replace(':max', '20'));
+            $('#roleGuardError').text(lang.validationSelectedInvalid.replace(':attribute', lang.attrGuardName));
             valid = false;
         }
         if (!valid) return;
@@ -730,6 +794,20 @@ $(function() {
     };
 
     // ==================== PERMISSIONS ====================
+    function setPermissionGuardDropdown(val) {
+        val = String(val);
+        var $dropdown = $('#permissionGuard').closest('.dropdown');
+        if (val && $dropdown.find('.dropdown-item[data-value="' + val + '"]').length === 0) {
+            $dropdown.find('.dropdown-menu').append(
+                $('<a>', { 'class': 'dropdown-item', href: 'javascript:void(0)', 'data-value': val, text: val })
+            );
+        }
+        $('#permissionGuard').val(val);
+        $('#permissionGuardText').text(val);
+        $dropdown.find('.dropdown-item').removeClass('active');
+        $dropdown.find('.dropdown-item[data-value="' + val + '"]').addClass('active');
+    }
+
     window.openPermissionModal = function(id, name, guard) {
         Iplat.resetModal('#permissionModal');
         $('#permissionId').val('');
@@ -738,10 +816,10 @@ $(function() {
             '<span>' + (id ? lang.editPermission : lang.addPermission) + '</span>'
         );
 
+        setPermissionGuardDropdown(id ? guard : 'web');
         if (id) {
             $('#permissionId').val(id);
             $('#permissionName').val(name);
-            $('#permissionGuard').val(guard);
         }
         new bootstrap.Modal('#permissionModal').show();
     };
@@ -759,7 +837,6 @@ $(function() {
         $('#permissionNameError, #permissionGuardError').text('');
 
         $name.val($name.val().trim());
-        $guard.val($guard.val().trim());
 
         var valid = true;
         if (!$name.val()) {
@@ -771,13 +848,13 @@ $(function() {
             $('#permissionNameError').text(lang.validationMaxString.replace(':attribute', lang.attrName).replace(':max', '125'));
             valid = false;
         }
-        if (!$guard.val().trim()) {
+        if (!$guard.val()) {
             $guard.addClass('is-invalid');
             $('#permissionGuardError').text(lang.validationRequired.replace(':attribute', lang.attrGuardName));
             valid = false;
-        } else if ($guard.val().length > 20) {
+        } else if (lang.registeredGuards.indexOf($guard.val()) === -1) {
             $guard.addClass('is-invalid');
-            $('#permissionGuardError').text(lang.validationMaxString.replace(':attribute', lang.attrGuardName).replace(':max', '20'));
+            $('#permissionGuardError').text(lang.validationSelectedInvalid.replace(':attribute', lang.attrGuardName));
             valid = false;
         }
         if (!valid) return;
@@ -813,9 +890,10 @@ $(function() {
     // ==================== BADGE LIST ====================
     window.openBadgeList = function(type, ulid, name) {
         var cfg = {
-            permissions: { url: routes.rolePermissions.replace(':id', ulid), title: lang.permissionsOf.replace(':name', name), empty: lang.noPermissions, itemKey: 'permissions', cols: 3 },
+            permissions: { url: routes.rolePermissions.replace(':id', ulid), title: lang.permissionsOf.replace(':name', name), empty: lang.noPermissions, itemKey: 'permissions', cols: 2 },
             users: { url: routes.roleUsers.replace(':id', ulid), title: lang.usersOf.replace(':name', name), empty: lang.noUsers, itemKey: 'items', cols: 2, box: true },
-            roles: { url: routes.permissionRoles.replace(':id', ulid), title: lang.rolesOf.replace(':name', name), empty: lang.noRoles, itemKey: 'items' , cols:1, box: true}
+            roles: { url: routes.permissionRoles.replace(':id', ulid), title: lang.rolesOf.replace(':name', name), empty: lang.noRoles, itemKey: 'items' , cols:1, box: true},
+            permission_users: { url: routes.permissionUsers.replace(':id', ulid), title: lang.usersOf.replace(':name', name), empty: lang.noUsers, itemKey: 'items', cols: 2, box: true }
         }[type];
         Iplat.showBadgeList(cfg.url, cfg.title, cfg.empty, cfg.itemKey, cfg.cols, cfg.box);
     };
@@ -848,6 +926,8 @@ $(function() {
             });
 
             $list.html(html || '<div class="col-12 text-center py-3 text-muted">' + lang.noPermissionsAvailable + '</div>');
+        }).fail(function() {
+            $list.html('<div class="col-12 text-center py-3 text-muted">' + (window.iplatTranslations && window.iplatTranslations.errorOccurred ? window.iplatTranslations.errorOccurred : 'An Error Occured') + '</div>');
         });
 
         new bootstrap.Modal('#assignPermModal').show();
@@ -872,9 +952,19 @@ $(function() {
 
     // ==================== CLEAR ERRORS ON INPUT ====================
     $('#roleName').on('input', function() { $(this).removeClass('is-invalid'); $('#roleNameError').text(''); });
-    $('#roleGuard').on('input', function() { $(this).removeClass('is-invalid'); $('#roleGuardError').text(''); });
     $('#permissionName').on('input', function() { $(this).removeClass('is-invalid'); $('#permissionNameError').text(''); });
-    $('#permissionGuard').on('input', function() { $(this).removeClass('is-invalid'); $('#permissionGuardError').text(''); });
+    $('#roleGuard').closest('.dropdown').on('click', '.dropdown-item', function(e) {
+        e.preventDefault();
+        setRoleGuardDropdown($(this).data('value'));
+        $('#roleGuard').removeClass('is-invalid');
+        $('#roleGuardError').text('');
+    });
+    $('#permissionGuard').closest('.dropdown').on('click', '.dropdown-item', function(e) {
+        e.preventDefault();
+        setPermissionGuardDropdown($(this).data('value'));
+        $('#permissionGuard').removeClass('is-invalid');
+        $('#permissionGuardError').text('');
+    });
 
     // ==================== RESET BUTTON STATE ON MODAL CLOSE ====================
     $('#roleModal').on('hidden.bs.modal', function() {
